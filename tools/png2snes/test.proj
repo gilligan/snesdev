@@ -1,0 +1,19 @@
+png2snes=~/coding/snes/projects/tools/png2snes CD=. filter="*.cpp *.h" {
+ anyoption.cpp
+ convertoptions.cpp
+ demo.cpp
+ main.cpp
+ snespal.cpp
+ tile.cpp
+ tileconverter.cpp
+ tilemap.cpp
+ Headers=. {
+ anyoption.h
+ convertoptions.h
+ snespal.h
+ tile.h
+ tileconverter.h
+ tilemap.h
+ tileptrlist.h
+ }
+}

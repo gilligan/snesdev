@@ -1,0 +1,894 @@
+ASM Tutorial
+Written by Jay
+
+Table of contents
+-------------------
+1)	Introduction
+2)	CPU Register/Flags
+3)	Addressing Modes
+4)	Opcode Reference
+5)	FAQ's
+
+1) Introduction
+-----------------
+
+This is a tutorial on 65816 asm used in the snes, made easy for dumb people to 
+understand (sorta). In case you are wondering, I don't program in this language, so 
+it is possible that I will write something incorrectly in this tutorial. If so, you can e-
+mail me at tennj@yahoo.com, to complain about how I suck at tutorials. Learning 
+asm language isn't easy. If you already know a high-level programming language, 
+the process will be a lot more easier. If you already know a low-level programming 
+language, then you may scrap my tutorial as you probably won't need it. (This 
+tutorial is for dumb people remember?) The purpose of this tutorial to for you to 
+learn the basics of asm.
+
+2) CPU Registers/Flags
+-------------------------
+
+The 65816 CPU has a set of registers and flags. So what the hell is a register? You 
+may think of a register as sorta a storage space. Like a variable. Each register has 
+it's own purpose. The standard registers are A, X, Y, D, S, PBR, DBR, PC, and P. 
+Now I will explain the usage of each register.
+
+A - Accumulator:
+
+The accumulator is a general purpose math register. In other words, we can store 
+anything we feel like into it and perform math operations to it. For example, if you 
+wanted to store $20 into the accumulator, then you can do this:
+	lda #$20	(lda = Load Accumulator with value)
+and then if you want to add 5 to it (assuming carry clear {<-more on this later}):
+	adc #$05	(adc = Add to accumulator with carry)
+ and the accumulator will have the value 25 in it.
+The accumulator can either be 8-bits and 16-bit. What I mean by this is when the 
+accumulator is 8-bit, it can only hold values from (0 - 255), but when it's 16-bit it 
+can hold values from (0 - 65535). There is absolutely no way of telling when the 
+accumulator is 8 or 16 bits unless you check bit 5 of the P flag (again more on this 
+later). If bit 5 is set, then accumulator is 8-bit, otherwise it's 16-bit.
+
+X, Y - Index Registers:
+
+The X, Y registers is much like the accumulator. You can store values into it and 
+perform math operations. However, they serve one additional purpose. They are 
+used to index memory locations. The X, and Y registers like the accumulator, can be 
+8 or 16 bits depending on bit 4 of the P flag.
+
+D - Direct Page Register:
+
+The direct page register is a pointer that points to a region within the first 64k of 
+memory. This register is used to access memory in direct addressing modes. In 
+direct addressing mode, a 8-bit value (0 - 255) is added to the direct page address, 
+which will form an effective address. For example, if the direct page register was 
+$5000, then:
+	sta $10	(sta = Store accumulator to address)
+will store the accumulator to address $5000 + $10 = $5010.
+
+S - Stack Register:
+
+The stack register points to a region where the stack is stored. So what is a stack? 
+Think of it this way. Suppose you have a table. When you push a book on the stack, 
+you place the book on the table. Suppose you push another book on the table, so 
+you have 2 books on the table. Now when you pop a book, you remove the top 
+book off the table. So what the heck am I saying with all this push and pop crap? 
+We can push values and pop values off and on the stack. Every time we push a 
+value onto the stack, the value is stored at where the stack is pointing to and the 
+stack will decrement. When we pop a value from the stack the value is stored to the 
+destination and the stack increments. Eg.
+Suppose our stack was at $1FFF, then
+	pea $1000	(pea = push effective address)
+we push $1000 onto the stack, the stack pointer will be at $1FFD since $1000 takes 
+up 2 bytes.
+	pla		(pla = pop to accumulator <-assuming 16-bits)
+will store the accumulator with $1000 and the stack register restored to $1FFF.
+
+PBR - Program Bank Register:
+
+The program banks register hold the current bank the code is running in. Usually, 
+an absolute address passed with a JMP (Jump to location) or JSR (Jump to 
+subroutine) uses the PBR register to form an effective address. eg.
+	PBR: $80	(The current value of PBR)
+
+	jmp $1C00
+will jump to location $80:1C00.
+
+DBR - Data Bank Register:
+
+Like the PBR register, this register refers to data accesses.
+	DBR: $90
+
+	lda $8000	(Load accumulator from address)
+loads a value from $90:8000.
+
+PC - Program counter:
+
+This register hold the address of the location of the current instruction. Along with 
+PBR, PBR:PC forms the effective address to the current instruction.
+
+P - Flag Register:
+
+The flag is a 8 bit register that stores the state of the CPU. It can also tell you 
+whether the accumulator and index registers is 8 or 16 bit. The layout of the flag is:
+
+________________________________
+|  n  |  v  |  m  |  x  |  d  |  i  |  z  |  c  |
+---------------------------------------------
+
+n: Negative
+v: Overflow
+m: Memory/Accumulator Select
+x: Index Register select
+d: Decimal
+i: Interrupt
+z: Zero
+c: Carry
+
+Each of the boxes above represent the bits in a byte. Therefore, you must convert 
+the flag register from decimal to binary, then compare it to above to check which 
+flags are set. The carry flag is usually set on error or and unsigned overflow. The 
+adc (Add with carry) command performs addition to the accumulator and adds 1 if 
+carry is set. So to perform a pure add, you must clear the carry flag first.
+	clc		(Clear carry flag)
+	adc #$20
+So if you were wondering what I was talking about earlier in the tutorial about 
+carry, now you know. The m and x flag controls whether the accumulator and index 
+register is 8 or 16 bits. When m is set, then accumulator is 16 bits. Most 
+assemblers can not detect whether you are working with an accumulator of 8 or 16 
+bits so it is up to you to keep track of the m flag as you program. Failure to do so 
+will result in a very hard to debug code. We can use the SEP (Set P flag) and REP 
+(Reset P Flag) to set and clear flags. To make the accumulator 16 bits, we take the 
+binary code 00010000 and convert it to hex, $20 or decimal #32, and do
+	rep #$20
+which will make the accumulator 16-bits.
+
+3) Addressing Modes
+-----------------------
+
+Addressing mode is how the processor interprets a command. In other words, we 
+cannot say that:
+	lda #$20
+means the same as
+	lda $20
+The first mode loads $20 directly to the accumulator. The second loads a byte from 
+address: direct page + $20. Therefore, a lesson on addressing modes must be 
+taught. From the examples here, the accumulator and index registers are assumed 
+to be 8-bit.
+
+First let's consider a few things in the syntax I use below.
+<exp> is an expression.
+A <8-bit exp> is an 8-bit expression. An 8-bit expression is any number between 
+$00 - $FF.
+A <16-bit exp> ranges from $0000 - $FFFF.
+A <24-bit exp> as you guessed it, from $00000 - $FFFFFF
+A <dp exp> is a direct page expression. A dp expression is a <8-bit exp> but it 
+refers the direct page, and is always written in hex and is 2 digits. The direct page 
+is always calculated by the <dp exp> + D.
+An <abs exp> is a <16-bit exp> but is always written in hex and has 4 digits.
+A <long exp> is a <24-bit exp> but is 6 digits and also written in hex.
+
+Immediate:
+
+opcode #<8/16-bit exp>
+
+Immediate address mode is specified with a value.
+eg.
+	lda #$FF	; Loads accumulator with $FF.
+	sep #$30	; Puts $30 into P
+
+Direct:
+
+opcode $<8-bit exp>
+
+The destination is formed by adding the direct page register with the 8-bit address 
+to form an effective address.
+eg.
+	lda $20	; Loads from $20 + D
+	lda $90	; Loads from $90 + D
+If D = $1000, then it will read a byte (if A is 8-bit) from address $1020.
+
+Absolute:
+
+opcode $<16-bit exp>
+
+The effective address is formed by DBR:<16-bit exp>.
+eg.
+	DBR: $88
+
+	lda $901C	; Loads a byte from address $88:901C
+
+Absolute Long:
+
+opcode $<24-bit exp>
+
+The effective address is the expression.
+eg.
+	lda $808000	; Loads a byte from $80:8000
+	lda $FF9090	; Loads from $FF:9090
+
+Accumulator:
+
+opcode
+
+The destination is the accumulator.
+eg.
+	inc	; Increments the accumulator
+
+Implied:
+
+opcode
+
+The opcode has it's own special function.
+eg.
+	clc	; Clears carry flag
+	inx	; Increments the X register
+
+Direct Indirect Indexed:
+
+opcode ($<dp exp>), y
+
+This is where the index registers come into play. 2 bytes are loaded from the direct 
+page address to form a base address that is combined with DBR. Finally y is added 
+to the base address to form the absolute address.
+eg.
+	DBR: $80,	D: $0020,	Y: 0001
+Memory dump:
+0030:	30 40 23 22 F4 22 23 1C
+0038:	23 2D DD F4 FF FF FF FF
+
+	lda ($10), y
+First we will calculate the DP address:
+	$10 + D = $0030
+Then pull 2 bytes from $0030, 30 & 40 (and they are reversed for the LSB ordering) 
+to get the address $4030. The address ($4030) is used with DBR to get the base 
+address.
+DBR:$4030 -> $80:4030
+The base address is added with y to create the effective address.
+base + y = $80:4030 + $0001 = $80:4031
+Basically, the command loads a byte from $80:4031 to the accumulator. Usually, 
+this mode is used in a loop where Y is incremented each time to pull a set of data 
+from a memory location.
+
+eg2.
+	DBR: $80,	D: $0020,	Y: 0001
+Memory dump:
+0030:	30 40 23 22 F4 22 23 1C
+0038:	23 2D DD F4 FF FF FF FF
+
+	lda ($15), y
+
+	DP Address = $0020 + $15 = $ 0035
+	Base Address = DBR:<2 bytes from $0035>
+			= $80:2322
+	Effective Address = Base Address + Y = $80:2323
+
+P.S. I may make this more complicated that it looks. Most of the time the D register 
+is 0, and therefore takes a lot less time calculating all of this.
+
+Direct Indirect Indexed Long:
+
+opcode [$<dp exp>], y
+
+This mode is like the previous addressing mode, but the difference is that rather 
+than pulling 2 bytes from the DP address, it pulls 3 bytes to form the effective 
+address.
+eg.
+	(Same example as last time)
+	eg.
+	DBR: $80,	D: $0020,	Y: 0001
+Memory dump:
+0030:	30 40 23 22 F4 22 23 1C
+0038:	23 2D DD F4 FF FF FF FF
+
+	lda [$10], y
+
+DP Address = $0020 + $10 = $0030
+Base Address is form by pulling 3 bytes from $0030, 30 40 23 which becomes the  
+address $23:4030. Now we add Y to the base address to form the effective address 
+$23:4031.
+
+Direct Indexed Indirect:
+
+opcode ($<dp exp>, x)
+
+The direct page address is calculated and added with x. 2 bytes from the dp address 
+combined with DBR will form the effective address.
+eg.
+	DBR: $80	D: $0020	X: $0004
+	Memory dump:
+	0020:	FF 00 FF 09 33 33 09 88
+	0028: 08 76 66 36 D7 23 99 00
+
+	lda ($02, x)
+First DP address is calculated.
+	DP Address = $02 + D = $0022
+Then added with X
+	dp address + x = $0026
+2 bytes are pulled from $0026, (09 88) to become $8809, and combined with DBR:
+	DBR:$8809 = $80:8809
+which will be the effective address of where the byte is loaded.
+
+Direct Indexed by X:
+
+opcode $<dp exp>, x
+
+The DP address is added to X to form the effective address. The effective address is 
+always in bank 0.
+eg.
+	D: $0020	X: $0004
+
+	lda $30, x
+DP Address = $30 + $0020 = $0050
+Effective Address = DP Address + X = $00:0054
+
+Direct Indexed by Y:
+
+opcode $<dp exp>, y
+
+Same as above except we add the Y register instead of X.
+
+Absolute Indexed by X:
+
+opcode $<abs exp>, x
+
+The absolute expression is added with X and combined with DBR to form the 
+effective address.
+eg.
+	DBR: $80	X: $0001
+
+	lda $8000, x
+Effective address = DBR:($8000 + x) = $80:8001
+	lda $6988, x
+Effective address = DBR:($6988 + x) = $80:6989
+
+Absolute Long Indexed by X:
+
+opcode $<long exp>, x
+
+The effective address is formed by adding the <long exp> with X.
+eg.
+	X: $0001
+
+	lda $808000, x
+loads a byte from $80:8001.
+	lda $589112, x
+loads from $58:9113
+
+Absolute Indexed by Y:
+
+opcode $<abs exp>, y
+
+Same as Absolute Indexed by X, except with Y.
+
+Program Counter Relative:
+
+opcode $<8-bit signed exp>
+
+This addressing mode is only used in branch commands. The <8-bit signed exp> is 
+added to PC (program counter) to form the new location of the jump. The <8-bit 
+signed exp> can range from (-128 to 127). Most assemblers will allow you to enter 
+an <abs exp> in which the +-128 is automatically calculated.
+eg.
+	bra $8005	; branch to location $8005 as long as it's within the 
+; (-128 to 127) range
+
+Program Counter Relative Long:
+
+opcode $<16-bit signed exp>
+
+Like above, but the range is between (0 to 65535). Only the BRL and PER 
+commands use this.
+
+Absolute Indirect:
+
+opcode $(<abs exp>)
+
+2 bytes are pulled from the <abs exp> to form the effective address.
+eg.
+	Memory dump:
+	0000:	90 77 78 00 43 00 00 00
+	0008:	33 32 12 33 11 11 FF FF
+
+	jmp ($0008)
+will first grab 2 bytes from $0008 (33 32), then jump to the address of $3233.
+
+Absolute Indexed Indirect:
+
+opcode $(<abs exp>, x)
+
+The <abs exp> is added with X, then 2 bytes are pulled from that address to form 
+the new location.
+eg.
+	X: 0001
+	Memory dump:
+	0000:	90 77 78 00 43 00 00 00
+	0008:	33 32 12 33 11 11 FF FF
+
+	jmp ($0008, x)
+Abs Address = $0008 + X = $0009
+2 bytes from $0009 = 32 12
+$1232 is the new location.
+
+Direct Indirect:
+
+opcode ($<dp exp>)
+
+2 bytes are pulled from the direct page address to form the 16-bit address. It is 
+combined with DBR to form a 24-bit effective address.
+eg.
+	D: 0000	DBR: $80
+
+	Memory Dump:
+	0040: 50 00 80 00 22 23 33 44
+	0050: 60 21 21 21 22 55 55 66
+	
+lda ($40)
+DP Address = $40 + D = $40
+16-bit address from $40 = $0050
+Effective Address = DBR:$0050 = $80:0050
+
+Direct Indirect Long:
+
+opcode [$<dp exp>]
+
+3 bytes are pulled from the direct page address to form an effective address.
+eg.
+D: 0000	DBR: $80
+
+	Memory Dump:
+	0040: 50 00 80 00 22 23 33 44
+	0050: 60 21 21 21 22 55 55 66
+	
+lda [$40]
+DP Address = $40 + D = $40
+Effective address = 24-bit address from $40 = $80:0050
+
+Stack:
+
+opcode
+
+Like implied but affects the stack.
+eg.
+	pha	; push Accumulator
+	pla	; pop accumulator
+
+Stack Relative:
+
+opcode <8-bit exp>, s
+
+The stack register is added to the <8-bit exp> to form the effective address.
+eg.
+	S: 1FF0
+
+	lda 1, s
+loads a byte from 1 + S = $1FF1.
+
+Stack Relative Indirect Indexed:
+
+opcode (<8-bit exp>, s), y
+
+The <8-bit exp> is added to S and combined with DBR to form the base address. Y 
+is added to the base address to form the effective address.
+eg.
+	S: $1FF0	Y: $0001	DBR: $80
+
+	lda (1, s), y
+Base address = DBR:($1FF0 + 1) = DBR:$1FF1 = $80:1FF1
+Effective Address = $80:1FF1 + Y = $80:1FF2
+
+Block Move:
+
+mvn $<8-bit exp>,$<8-bit exp>
+mvp $<8-bit exp>,$<8-bit exp>
+
+This is by far the weirdest instruction I've seen. It bascially moves chunks of blocks 
+from one place to another. The first $<8-bit exp> is the bank of the destination. 
+The second is the bank of the source. X is loaded with the 16-bit address of the 
+source, and Y is loaded with the 16-bit address of the destination. A is loaded with 
+how many bytes to transfer.
+eg.
+
+X: ????  Y: ????  A: ????	rep #$30	; Make accumulator and index 16-bit
+X: ????  Y: ????  A: ????	ldy #$8000	; load X with $8000
+X: ????  Y: 8000 A: ????	ldx #$9000	; load X with $9000
+X: 9000 Y: 8000 A: ????	lda #$0005	; lead A with 5
+X: 9000 Y: 8000 A: 0005	mvp $80, $A0; block move increment
+will transfer 5 bytes from $80:8000 -> $A0:9000
+
+4)	Opcode Reference
+----------------------------
+
+Here is a simple explanation of most of the commands in asm.
+
+ADC - Add with carry
+
+The operand is added to the accumulator. 1 is added in addition is carry flag is set.
+eg.
+
+A: 0010	adc #$50	; adds $50 to accumulator or 51 if carry is set
+A: 0060			; result
+
+AND - Perform AND to accumulator
+
+The operand is "AND"ed to the accumulator.
+eg.
+A: 0010	and #$80	; "AND"s $80 to accumulator
+A: 0000
+
+ASL - Left shifts Accumulator, Memory
+
+Performs a shift left.
+eg.
+A: 0010	asl #$01	; Left shifts accumulator with 1
+A: 0020
+
+BCC - Branch is carry clear
+
+Jump to a new location within the -128 to 128 range if the carry flag is clear. Useful 
+for comparing 2 numbers, and branches if it is greater than.
+eg.
+P: --mxdi--		bcc next	; since the carry flag is clear, it'll jump to next
+			lda #$00	; this will not be executed
+		next:	lda #$40
+
+BCS - Branch if carry set
+
+Like BCC, but only when carry is set. Good for branching "if less than" in 
+comparison.
+
+BEQ - Branch if equal
+
+Branches is zero flag is set. This is useful for comparing numbers.
+eg.
+	cpx #$50	; if X is = $50, the zero flag is set
+	beq next	; branches to next if X = $50
+	lda #$44
+next:	lda #$00
+
+BIT - Bit Test
+
+Performs AND except only the flags are modified.
+eg.
+A: 0010	bit #$80	; "AND"s $80 to accumulator but result not stored
+A: 0010
+
+BMI - Branch if Minus
+
+Branches if negative flag is set.
+
+BNE - Branch if not equal
+
+Branches if zero flag clear. Good when used with comparison. You can branch if the 
+number it not equal to.
+
+BPL - Branch if plus
+
+Branches if negative flag clear.
+
+BRA - Branch always
+
+Hmm…..
+
+BRK - Break to instruction
+
+Causes a software break. The PC is loaded from a vector table from somewhere 
+around $FFE6.
+
+BRL - Branch Always Long
+
+Like BRA but with longer range (0 - 65535).
+
+BVC - Branch if Overflow Clear
+
+Branches if overflow flag is clear.
+
+BVS - Branch if Overflow Set
+
+Opposite of BVC.
+
+CLC - Clear Carry Flag
+
+Clears the carry flag.
+
+CLD - Clear Decimal Flag
+
+Clears the decimal flag.
+
+CLI - Clear Interrupt Flag
+
+Clears the interrupt Flag.
+
+CLV - Clear Overflow Flag
+
+Clears the Overflow flag.
+
+CMP - Compare Accumulator with memory
+CPX - Compare X with memory
+CPY - Compare Y with memory
+Compares accumulator, X, or Y with an operand. The n-----zc flags are affected by 
+the comparison. If the result is negative, the n flag is set. If the result is zero (or 
+equal), the z flag is set. Carry is set usually when borrow is required.
+eg.
+A: 0020 P: --mx-i--		cmp #$20	; compare accumulator with $20
+						; if equal, z flag is set
+A: 0020 P: --mx-iz-		beq next	; branch if equal
+
+COP - Coprocessor Empowerment
+
+Causes a software interrupt using a vector.
+
+DEC - Decrement Accumulator
+DEX - Decrement X
+DEY - Decrement Y
+
+Subtracts 1 from A, X, or Y.
+eg.
+Y: 0001	dey
+Y: 0000
+
+EOR - Exclusive OR accumulator
+
+Performs XOR (I think) to the accumulator.
+eg.
+A: FFFF	eor #$DDDD
+A: 2222
+
+INC - Increment Accumulator
+INX - Increment X
+INY - Increment Y
+
+Adds 1 to A, X, or Y.
+eg.
+A: 0000	inc
+A: 0001
+
+JMP - Jump to location
+JML - Jump long
+
+he JMP command will jump to a location within the bank. The JML will jump to 
+places out of the current bank.
+eg.
+PBR: $80	jmp $5500	; jumps to $80:5500
+PBR: $80	jml $908000	; jumps to $90:8000
+PBR: $90			; the PBR is updated in long jump
+
+JSR - Jump Subroutine
+JSL - Jump Subroutine Long
+
+If you already know a programming language, this is basically calling a function. 
+This performs the same as JMP except the address of the current program counter 
+is saved. In subroutines, the RTS and RTL are used to return back to the saved 
+address.
+
+LDA - Load Accumulator with memory
+LDX - Load X with memory
+LDY - Load Y with memory
+
+Loads the accumulator, X, Y with a value.
+
+LSR - Shift Right Accumulator, Memory
+
+Performs right shift.
+eg.
+A: 0080	lsr #$01	; shift right by 1
+A: 0040
+
+MVN - Block move negative
+MVP - Block move positive
+
+*See Block Move Addressing mode.
+The difference between the positive and negative block move is that with negative 
+block move, the source address is greater than the destination.
+
+NOP - No operation
+
+Does nothing but take up 2 cycles.
+
+ORA - "OR" Accumulator with memory
+
+Performs "OR" to accumulator.
+eg.
+A: 005F	ora #$7F
+A: 007F
+
+PEA - Push Effective Address
+
+Pushes a 16-bit operand onto the stack. The instruction is very misleading because 
+you are really pushing an immediate onto the stack.
+eg.
+S: 1FFF	pea $FFFF	; Pushes $FFFF onto the stack
+S: 1FFD			; stack decrements by 2
+
+PEI - Push Effective Indirect Address
+
+Pushes a 16-bit value from the indirect address of the operand.
+eg.
+Memory Dump:
+0000: 23 33 45 22 DD C7 FF 8D
+0001: 99 99 90 88 DD FF CC 67
+
+S: 1FFF	pei ($01)	; push $4533 on the stack
+S: 1FFD
+
+PER - Push Program Counter Relative
+
+Pushes a 16-bit from that address taken by the current PC added to the operand. 
+The range must be within (0 - 65535).
+
+PHA - Push Accumulator
+PHD - Push Direct Page Register
+PHK - Push PBR
+PHP - Push Flags
+PHX - Push X
+PHY - Push Y
+
+Pushes the operand onto the stack.
+
+PLA - Pull Accumulator
+PLD - Pull Direct Page Register
+PLP - Pull Flags
+PLX - Pull X
+PLY - Pull Y
+
+Pops a value off the stack and stores it in the operand.
+
+REP - Reset Flag
+
+Clears the bits specified in the operands of the flag.
+eg.
+	rep #$30	; Clears bit 4 & 5 to make A, X, Y 16-bits
+
+ROL - Rotate Bit Left
+
+Much like shift left except any bits moved off the most significant bit are restored to 
+the right.
+eg.
+A: 8000	rol #$0001	;rotate 1 left
+A: 0001
+
+ROR - Rotate Bit Right
+
+Much like shift right except any bits moved off the least significant but are restored 
+to the left.
+eg.
+A: 0001	ror #$0001	; rotate 1 right
+A: 8000
+
+RTI - Return from Interrupt
+
+Used to return from a interrupt handler.
+
+RTS - Return from Subroutine
+RTL - Return from Subroutine Long
+
+Return the PC to the saved address caused by the JSR and JSL command.
+eg.
+	jsl sub	; jump to subroutine at label "sub"
+	    .
+	    .
+	    .
+sub:
+	lda #$0000	; some code
+	rtl		; return
+
+SBC - Subtract with Carry
+
+Subtracts Accumulator with memory, and subtract and additional 1 is carry is set.
+
+SEC - Set Carry Flag
+
+Sets the carry flag.
+
+SED - Set Decimal Flag
+
+Sets the decimal flag.
+
+SEI - Set Interrupt flag
+
+Sets the interrupt flag.
+
+SEP - Set Flag
+
+Sets certain bits of the flag depending on the operand.
+eg.
+	sep #$20	; set bit 5 of P to make A 8-bits
+
+STA - Store Accumulator to memory
+STX - Store X to memory
+STY - Store Y to memory
+
+Stores the accumulator, X, or Y to a memory location.
+eg.
+A: 000F	sep #$20	; 8-bit A
+A: 000F	sta $2100	; Stores $0F to $2100
+
+STP - Stop the clock
+
+Don't know how this works.
+
+STZ - Store zero to memory
+
+Stores zero to a memory location.
+eg.
+	stz $2101	; store 0 to $2101
+
+TAX - Transfer Accumulator to X
+TAY - Transfer Accumulator to Y
+TCD - Transfer Accumulator to Direct Page
+TCS - Transfer Accumulator to Stack
+TDC - Transfer Direct Page to Accumulator
+TSC - Transfer Stack to Accumulator
+TSX - Transfer stack to X
+TXA - Transfer X to Accumulator
+TXS - Transfer X to Stack
+TXY - Transfer X to Y
+TYA - Transfer Y to Accumulator
+TYX - Transfer Y to X
+
+Copies the content of one register to another.
+
+eg.
+A: 0099 X: 1FFF Y:5656 D:0020 S: FFFF	rep #$30
+A: 0099 X: 1FFF Y:5656 D:0020 S: FFFF	lda #$0000	; load A with 0
+A: 0000 X: 1FFF Y:5656 D:0020 S: FFFF	tcd		; transfer A -> D
+A: 0000 X: 1FFF Y:5656 D:0000 S: FFFF	txa		; X -> A
+A: 1FFF X: 1FFF Y:5656 D:0000 S: FFFF	tcs		; A -> S
+A: 1FFF X: 1FFF Y:5656 D:0000 S: 1FFF
+
+You get the idea.
+
+TRB - Test and Reset Bit
+
+Tests the bit similarly to "AND", and clears it, while affecting the flags.
+
+TSB - Test and Set Bit
+
+Tests the bit similarly to "AND", and sets it, while affecting the flags.
+
+WAI - Wait for Interrupt
+
+Waits until a hardware interrupt is triggered.
+
+XBA - Exchanges B with A
+
+Due to the fact that the accumulator was either 8 or 16 bit, the low and high ends 
+of the accumulator was given a name A and B (and C is the whole 16-bit 
+Accumulator). This command swaps the low and high of the accumulator.
+eg.
+A: 5690	xba
+A: 9056
+
+XCE - Exchange Carry with Emulation
+
+Well, the 65816 has actually 2 modes. Native and (6502) emulation mode. This 
+tutorial deals with native only. The emulation bit shares the same bit as the carry 
+flag so to put ourselves in native mode, we can only set the emulation flag via the 
+carry and exchanging it. For native mode, the emulation flag must be off. To switch 
+to native mode, we must clear the carry and exchange it.
+eg.
+	clc
+	xce
+
+5)	FAQ's
+--------------
+
+Q: Since the accumulator is 8/16 bits, how will disassemblers know when the 
+accumulator is 8 or 16 bits?
+
+A: It doesn't. Tracer has an option on there that will attempt to detect the 
+Accumulator and index size. Use the -f switch.
+
+Q: Sometimes the assembler compiles my JMP to a JML instruction. What should I 
+do?
+
+A: Try jmp.w
+
+Q: OK. I got down all the basics. Does this mean I'll be able be able to hack snes 
+roms like all the other groups out there with my newly gotten asm skills? 
+
+A: No. You must learn about the hardware. I don't cover this.
+
+Q: Are you the coolest?
+
+A: Yes.
+
+Q: What about Tiger Claw? Ain't he cool too?
+
+A: Ofcourse.

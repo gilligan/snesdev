@@ -1,0 +1,252 @@
+-------------------------------------------------------------------------------
+1. HARDWARE SPECIFICATION TO SWC & SMC PROGRAMMER ONLY.
+-------------------------------------------------------------------------------
+   1) DRAM - 28 MEGA BITS MAXIMUM AVAILABLE.
+   2) SRAM - 256k BITS. (BATTERY BACKUP)
+   3) ROM  - 128K BITS. (FIRMWARE)
+   4) FLOPPY DRIVE INTERFACE -
+      * MOTOROLA MCS3201 CHIP. (NEC 765A COMPATIBLE)
+      * COMPATIBLE WITH IBM PC/AT AND XT DISK DRIVE SYSTEM.
+      * SUPPORTS 3.5 OR 5.25 INCH FLOPPY DISK DRIVE.
+      * DB-25 FEMALE CONNECTOR. (NON-STANDARD)
+      * SUPPORTS ONLY NON-DMA MODE. (POLLING)
+   5) PARALLEL PORT INTERFACE -
+      * 8 BITS INPUT, 4 BITS OUTPUT, 1 BIT HANDSHAKE.
+      * DB-25 FEMALE CONNECTOR.
+      * USE MALE DB-25 TO MALE DB-25 CABLE CONNECT TO IBM PC PARALLEL PORT.
+
+-------------------------------------------------------------------------------
+2. SOFTWARE SPECIFICATION & FEATURE
+-------------------------------------------------------------------------------
+   1) REGISTERS -
+
+      [FLOPPY DRIVE I/O]
+      C000R : INPUT REGISTER.
+              BIT 7 : MCS3201 IRQ SIGNAL.
+              BIT 6 : DRIVE 'INDEX' SIGNAL. (DISK INSERT CHECK)
+      C002W : DIGITAL OUTPUT REGISTER.
+      C004R : MAIN STATUS REGISTER.
+      C005RW: DATA REGISTER.
+      C007R : DIGITAL INPUT REGISTER.
+      C007W : DISKETTE CONTROL REGISTER.
+      * CONSULT THE MCS3201 DATA SHEET FOR MORE DETAIL INFORMATION.
+
+      [PARALLEL I/O]
+      C008R : BIT 0-7 : PARALLEL DATA INPUT. (READ THIS REGISTER WILL
+                                              REVERSE THE BUSY FLAG)
+      C008W : BIT 0-3 : PARALLEL DATA OUTPUT.
+              BIT 0   : 0=MODE 20, 1=MODE 21. (DRAM MAPPING)
+              BIT 1   : 0=MODE 1, 1=MODE 2. (SRAM MAPPING)
+      C009R : BUSY FLAG, BIT 7. (EP1810 VERSION)
+      C000R : BUSY FLAG, BIT 5. (FC9203 VERSION)
+
+      [PAGE SELECT]
+      E000W : MEMORY PAGE 0.
+      E001W : MEMORY PAGE 1.
+      E002W : MEMORY PAGE 2.
+      E003W : MEMORY PAGE 3.
+
+      [MODE SELECT]
+      E004W : SYSTEM MODE 0. (BIOS MODE, POWER ON DEFAULT)
+      E005W : SYSTEM MODE 1. (PLAY CARTRIDGE)
+      E006W : SYSTEM MODE 2. (CARTRIDGE EMULATION 1)
+      E007W : SYSTEM MODE 3. (CARTRIDGE EMULATION 2)
+
+      [OTHERS]
+      E008W : 44256 DRAM TYPE. (FOR 2,4,6,8 MEGA DRAM CARD)
+      E009W : 441000 DRAM TYPE. (FOR 8,16,24,32 MEGA DRAM CARD)
+
+      E00CW : ENABLE CARTRIDGE PAGE MAPPING AT A000-BFFF. (SYS MODE 0)
+              DISABLE CARTRIDGE MAPPING AT BANK 20-5F, A0-DF. (SYS MODE 2,3)
+      E00DW : ENABLE SRAM PAGE MAPPING AT A000-BFFF. (SYS MODE 0)
+              ENABLE CARTRIDGE MAPPING AT BANK 20-5F, A0-DF. (SYS MODE 2,3)
+
+      * THE BANK ADDRESS OF THE ABOVE REGISTERS IS 00-7D, 80-FF.
+      * THE ABOVE REGISTERS ARE AVAILABLE ONLY IN SYSTEM MODE 0. (BIOS MODE)
+      * [MODE SELECT] REGISTERS ALSO AVAILABLE IN SYSTEM MODE 2.
+
+   2) MEMORY MAPPING -
+
+      [SYSTEM MODE 0]
+      bb2000-bb3FFFRW: SRAM OR CARTRIDGE PAGE MAPPING, bb-40-7D,C0-FF
+      bb8000-bb9FFFRW: DRAM PAGE MAPPING, bb-00-7D,80-FF
+      bbA000-bbBFFFRW: SRAM OR CARTRIDGE PAGE MAPPING, bb=00-7D, 80-FF.
+      bbC000-      RW: I/O REGISTERS, bb=00-7D, 80-FF. (REGISTERS)
+      bbE000-bbFFFFR : ROM PAGE MAPPING, BB=0-1. (FIRMWARE)
+
+      * 1 PAGE = 8K BYTES, 1 BANK = 4 PAGES.
+      * bb:00-0F = 4 MEGA BYTES.
+      * bb:00-1F = 8 MEGA BYTES.
+      * bb:00-2F = 12 MEGA BYTES.
+      * bb:00-3F = 16 MEGA BYTES.
+        ...
+
+      [SYSTEM MODE 1]
+      bb0000-bb7FFFR : CARTRIDGE MAPPING, bb=40-7D, C0-FF. (MODE 21)
+      bb8000-bbFFFFR : CARTRIDGE MAPPING, bb=00-7D, 80-FF. (MODE 20,21)
+
+      [SYSTEM MODE 2]
+      bb0000-bb7FFFR : DRAM MAPPING, bb=40-70, C0-E0. (MODE 21)
+      bb8000-bbFFFFR : DRAM MAPPING, bb=00-70, 80-E0. (MODE 20,21)
+      708000-70FFFFRW: SRAM MODE 1 MAPPING.
+      306000-307FFFRW: SRAM MODE 2 MAPPING, PAGE 0.
+      316000-317FFFRW: SRAM MODE 2 MAPPING, PAGE 1.
+      326000-327FFFRW: SRAM MODE 2 MAPPING, PAGE 2.
+      336000-337FFFRW: SRAM MODE 2 MAPPING, PAGE 3.
+     *bbE004-bbE007W : MODE SELECT REGISTERS, bb=00-7D, 80-FF.
+
+      [SYSTEM MODE 3]
+      bb0000-bb7FFFR : DRAM MAPPING, bb=40-6F, C0-DF. (MODE 21)
+      bb8000-bbFFFFR : DRAM MAPPING, bb=00-6F, 80-DF. (MODE 20,21)
+      708000-70FFFFRW: SRAM MODE 1 MAPPING.
+      306000-307FFFRW: SRAM MODE 2 MAPPING, PAGE 0.
+      316000-317FFFRW: SRAM MODE 2 MAPPING, PAGE 1.
+      326000-327FFFRW: SRAM MODE 2 MAPPING, PAGE 2.
+      336000-337FFFRW: SRAM MODE 2 MAPPING, PAGE 3.
+
+      * MODE 21
+        EVEN DRAM BANK IS MAPPED TO bb0000-bb7FFF.
+        ODD DRAM BANK IS MAPPED TO bb8000-bbFFFF.
+
+   3) PARALLEL I/O PROTOCOL -
+
+      [PROTOCOL USED IN PC]
+      * BYTE OUTPUT PROCEDURE
+          WAIT BUSY BIT = 1           STATUS PORT BIT7   (HEX n79, n7D)
+          WRITE ONE BYTE              DATA LATCH         (HEX n78, n7C)
+          REVERSE STROBE BIT          CONTROL PORT BIT0  (HEX n7A, n7E)
+      * BYTE INPUT PROCEDURE
+          WAIT BUSY BIT = 0           STATUS PORT BIT7   (HEX n79, n7D)
+          READ LOW 4 BITS OF BYTE     STATUS PORT BIT3-6 (HEX n79, n7D)
+          REVERSE STROBE BIT          CONTROL PORT BIT0  (HEX n7A, n7E)
+          WAIT BUSY BIT = 0           STATUS PORT BIT7   (HEX n79, n7D)
+          READ HIGH 4 BITS OF BYTE    STATUS PORT BIT3-6 (HEX n79, n7D)
+          REVERSE STROBE BIT          CONTROL PORT BIT0  (HEX n7A, n7E)
+      * 5 TYPES OF COMMAND
+      * COMMAND LENGTH = 9 BYTES.
+      * COMMAND FORMAT
+        BYTE 1   D5               ID CODE 1
+        BYTE 2   AA               ID CODE 2
+        BYTE 3   96               ID CODE 3
+        BYTE 4   00|01|04|05|06   COMMAND CODE
+        BYTE 5   al               LOW BYTE OF ADDRESS
+        BYTE 6   ah               HIGH BYTE OF ADDRESS
+        BYTE 7   ll               LOW BYTE OF DATA LENGTH
+        BYTE 8   lh               HIGH BYTE OF DATA LENGTH
+        BYTE 9   cc               CHECKSUM = 81^BYTE4^BYTE5^BYTE6^BYTE7^BYTE8
+      * COMMAND [00] : DOWNLOAD DATA
+        al, ah = ADDRESS
+        ll, lh = DATA LENGTH
+        OUTPUT DATAS AFTER COMMAND
+      * COMMAND [01] : UPLOAD DATA
+        al, ah = ADDRESS
+        ll, lh = DATA LENGTH
+        INPUT DATAS AFTER COMMAND
+      * COMMAND [04] : FORCE SFC PROGRAM TO JMP
+        al, ah = ADDRESS
+      * COMMAND [05] : SET MEMORY PAGE NUMBER
+        al BIT0-1 = PAGE NUMBER
+        al BIT2-7 + ah BIT0-1 = BANK NUMBER
+      * COMMAND [06] : SUB FUNCTION
+        al = 0  INITIAL DEVICE
+        al = 1  PLAY GAME IN DRAM
+        al = 2  PLAY CARTRIDGE
+
+-------------------------------------------------------------------------------
+3. PASSWORD FORMAT
+-------------------------------------------------------------------------------
+   1) DESCRIPTION
+      USE THE DATA IN THE PASSWORD TO REPLACE THE DATA IN THE
+      MEMORY AT THE OFFSET ADDRESS. (ACCORDING TO THE GAME FILE)
+
+   2) FORMAT 1 -
+      * "GAME DOCTOR" GOLD FINGER FORMAT.
+      * 20 BITS ADDRESS SPACE ASSIGNMENT.
+      * 3 DATA BYTES PER STRING.
+      * [Gaaaaaddddddccc]
+        'G'    = MEANS GAME DOCTOR FORMAT.
+        aaaaa  = OFFSET ADDRESS OF GAME FILE. (EXCLUDING 512 BYTES HEADER)
+        dddddd = 3 DATA BYTES. (IF THE SECOND OR THE THIRD DATA IS '00',
+                                THAT MEANS THE DATA UN-CHANGE AT THE SECOND
+                                OR THIRD BYTE)
+        ccc    = CHECKSUM. (DOES NOT USE IN SWC AND SMC)
+
+   3) FORMAT 2 -
+      * "FRONT FAREAST" FORMAT.
+      * 24 BITS ADDRESS SPACE ASSIGNMENT.
+      * 1 TO 36 DATA BYTES PER STRING.
+      * NO CHECKSUM.
+      * [nnaaaaaadd....]
+        nn     = DATA BYTE LENGTH.
+        aaaaaa = OFFSET ADDRESS OF GAME FILE. (EXCLUDING 512 BYTES HEADER)
+        dd.... = nn BYTES DATA. (SHOULD BE nn*2 CHARACTERS)
+
+-------------------------------------------------------------------------------
+4. FILE HEADER
+-------------------------------------------------------------------------------
+   1) CREATED BY JSI/FRONT FAREAST.
+   2) 512 BYTES LENGTH. (ONE SSECTOR)
+   3) BYTE
+       0   - LOW BYTE OF 8K-BYTES PAGE COUNTS.
+       1   - HIGH BYTE OF 8K-BYTES PAGE COUNTS.
+       2   - EMULATION MODE SELECT
+             BIT 76543210
+                 X        : 1=RUN IN MODE 0. (JUMP $8000)
+                  X       : 0=LAST FILE OF THE GAME. (MULTI FILE LOADING)
+                   X      : 0=MODE 1, 1=MODE 2. (SRAM MAPPING)
+                    X     : 0=MODE 20, 1=MODE 21. (DRAM MAPPING)
+                     XX   : 0=SRAM OFF, 1=SRAM 16K, 2=SRAM 64K, 3=SRAM 256K
+                       X  : 0=RUN IN MODE 3, 1=RUN IN MODE 2. (JMP RESET)
+                        X : 0=DISABLE, 1=ENABLE. (EXTERNAL CARTRIDGE MEMORY
+                                                  IMAGE AT BANK 20-5F, A0-DF
+                                                  IN SYSTEM MODE 2, 3)
+       3-7 - RESERVED. (SHOULD BE '00')
+       8   - FILE ID CODE 1. (SHOULD BE 'AA')
+       9   - FILE ID CODE 2. (SHOULD BE 'BB')
+       10  - CHECK THIS BYTE IF ID 1 AND 2 MATCH.
+             '02': MAGIC GRIFFIN GAME FILE. (PC ENGINE)
+             '03': MAGIC GRIFFIN SRAM DATA FAILE.
+             '04': SWC&SMC GAME FILE. (SUPER MAGICOM)
+             '05': SWC&SMC PASSWORD, SRAM DATA, SAVER DATA FILE.
+             '06': SMD GAME FILE. (MEGA DRIVE)
+             '07': SMD SRAM DATA FILE.
+       11-511 - RESERVED. (SHOULD BE '00')
+
+-------------------------------------------------------------------------------
+5. MEMORY MODE SWAP FILE FORMAT
+-------------------------------------------------------------------------------
+   1) DESCRIPTION
+      THIS IS VERSION 1.0 FORMAT. IT DOES NOT CONTAIN SUPER FAMICOM PPU
+      REGISTERS IMAGE. I PLAN TO SUPPORT PPU REGISTERS BACKUP IN THE
+      'SUPER WILDCARD PLUS' AND 'SUPER WILDCARD 2' MACHINE(IT REQUIRES THE
+      HARDWARE SUPPORT FOR PPU REGISTER BACKUP). SO IN NEW MACHINE
+      IT WILL BE POSSIBLE TO CONVERT THE MEMORY FILE TO A STILL IMAGE
+      IN THE COMPUTER AND GET A GAME SCREEN HARDCOPY FROM COLOR PRINTER
+      OUTPUT. ALSO YOU CAN VIEW THE MEMORY FILE IMAGE ON TV THROUGH
+      A UTILITY PROGRAM BY WILDCARD(THIN FUNCTION MAY INCLUDE IN THE
+      NEW BIOS FOR ABOVE TWO NEW MACHINES).
+
+   2) FILE LENGTH : 512 BYTES HEADER + 256K BYTES DATA
+
+   3) FORMAT
+      OFFSET            DESCRIPTION
+      0-1FF             HEADER
+      200-201FF         128KB.CPU WORK RAM 7E0000-7FFFFF IMAGE
+      20200-301FF       64KB.PPU VRAM IMAGE
+      30200-3E1FF       56KB.RESERVED
+      3E200-401FF       CPU REGISTER BACKUP
+                        3E200           P FLAG REGISTER
+                        3E201           DATA BANK REGISTER
+                        3E202-3         A REGISTER
+                        3E204-5         X REGISTER
+                        3E206-7         Y REGISTER
+                        3E208-9         S REGISTER
+                        3E20A-B         DIRECT REGISTER
+                        WILD CARD MODE BACKUP
+                        3F208-9         C008-9 REGISTER
+                        3F20A           BIT 0 OF EMULATION MODE SELECT
+
+-------------------------------------------------------------------------------
+                                   E N D                                    JSI
+-------------------------------------------------------------------------------
+

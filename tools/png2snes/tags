@@ -1,0 +1,30 @@
+!_TAG_CACHE	4300
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.5.4	//
+B	./snespal.h	/^    uint B;$/;"	kind:member	line:18	class:SNESCol	access:private
+BGR	./snespal.h	/^    uint BGR;$/;"	kind:member	line:17	class:SNESCol	access:private
+G	./snespal.h	/^    uint G;$/;"	kind:member	line:19	class:SNESCol	access:private
+R	./snespal.h	/^    uint R;$/;"	kind:member	line:20	class:SNESCol	access:private
+SNESCol	./snespal.h	/^    SNESCol( uint val ) { $/;"	kind:function	line:13	class:SNESCol	access:private	signature:( uint val )
+SNESCol	./snespal.h	/^class SNESCol {$/;"	kind:class	line:11
+SNESPAL_H	./snespal.h	2;"	kind:macro	line:2
+SNESPal	./snespal.cpp	/^SNESPal::SNESPal( QImage*  img, unsigned int col )$/;"	kind:function	line:6	class:SNESPal	signature:( QImage* img, unsigned int col )
+SNESPal	./snespal.h	/^        SNESPal( QImage*  img, unsigned int c );$/;"	kind:prototype	line:27	class:SNESPal	access:public	signature:( QImage* img, unsigned int c )
+SNESPal	./snespal.h	/^class SNESPal {$/;"	kind:class	line:23
+colTableBGR15bit	./snespal.h	/^        vector<uint> colTableBGR15bit;$/;"	kind:member	line:40	class:SNESPal	access:private
+getColor	./snespal.cpp	/^uint SNESPal::getColor( uint num )$/;"	kind:function	line:26	class:SNESPal	signature:( uint num )
+getColor	./snespal.h	/^        uint getColor( uint num );$/;"	kind:prototype	line:30	class:SNESPal	access:public	signature:( uint num )
+getHiBGRNibble	./snespal.cpp	/^uint SNESPal::getHiBGRNibble( uint bgrVal )$/;"	kind:function	line:36	class:SNESPal	signature:( uint bgrVal )
+getHiBGRNibble	./snespal.h	/^        static uint getHiBGRNibble( uint bgrVal );$/;"	kind:prototype	line:33	class:SNESPal	access:public	signature:( uint bgrVal )
+getLoBGRNibble	./snespal.cpp	/^uint SNESPal::getLoBGRNibble( uint bgrVal )$/;"	kind:function	line:31	class:SNESPal	signature:( uint bgrVal )
+getLoBGRNibble	./snespal.h	/^        static uint getLoBGRNibble( uint bgrVal );$/;"	kind:prototype	line:32	class:SNESPal	access:public	signature:( uint bgrVal )
+img	./snespal.cpp	/^QImage img;$/;"	kind:variable	line:3
+numColors	./snespal.h	/^        const int numColors;$/;"	kind:member	line:39	class:SNESPal	access:private
+operator <<	./snespal.cpp	/^QTextStream & SNESPal::operator <<( QTextStream & os )$/;"	kind:function	line:52	class:SNESPal	signature:( QTextStream & os )
+operator <<	./snespal.h	/^        QTextStream & operator<<( QTextStream & os );$/;"	kind:prototype	line:35	class:SNESPal	access:public	signature:( QTextStream & os )
+packBGR	./snespal.cpp	/^uint SNESPal::packBGR( uint rgbVal )$/;"	kind:function	line:41	class:SNESPal	signature:( uint rgbVal )
+packBGR	./snespal.h	/^        static uint packBGR( uint rgbVal );$/;"	kind:prototype	line:31	class:SNESPal	access:public	signature:( uint rgbVal )
+~SNESPal	./snespal.h	/^        ~SNESPal() {};$/;"	kind:function	line:28	class:SNESPal	access:public	signature:()

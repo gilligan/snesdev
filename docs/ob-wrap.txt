@@ -1,0 +1,135 @@
+=============================================================================
+ Anomie's SNES OpenBus & Wrapping Doc
+ $Revision: 1126 $
+ $Date: 2007-04-21 15:07:05 -0400 (Sat, 21 Apr 2007) $
+ <anomie@users.sourceforge.net>
+=============================================================================
+
+Open Bus
+--------
+The theory is that the S-CPU chip has something called a "Memory Data Register"
+or MDR, which stores the value for every read/write. When you attempt to read
+from unmapped memory, no new value is supplied for this register and so you
+read the same old value over and over.
+
+Note that CPU IO cycles do not affect the MDR (and therefore the Open Bus
+value), even though the datasheet specifies addresses for those cycles.
+
+Note that JSL a pushes the old PB before reading the new PB, in case the new PB
+is being read from Open Bus. Also note that JSR (a,X) pushes the old address
+(low byte second) before reading the high byte of the new address.
+
+The PPU chips also each have their own MDR, which is updated only when said PPU
+chip is read. When you read a register with unmapped bits, the PPU fills in
+only those bits that are defined and leaves the remaining bits as the MDR has
+them. PPU1's MDR is set by reading $2134-6 or $2138-A, and may also be read
+from the write-only registers $21x4-6 and $21x8-A (x=0-2). PPU2 involves
+registers $213B-D only (and maybe $21xB-D, but this is unverified).
+
+
+Instruction Wrapping
+--------------------
+These are my results:
+
+ * Program Counter Increment 
+   - Always wraps within the bank, at any point in the opcode.
+   
+ * Absolute -- a
+   - Word reads in native mode will carry into the next bank.
+   
+ * Absolute Indexed X -- a,X
+   - Adding X may carry into the next bank.
+   - Word reads in native mode will carry into the next bank.
+ 
+ * Absolute Indexed Y -- a,Y
+   - Adding Y may carry into the next bank.
+   - Word reads in native mode will carry into the next bank.
+ 
+ * Absolute Indirect -- (a)
+   - The "JMP ($xxFF)" bug is fixed.
+   - There's no way to test address load wrapping behavior, since it uses Bank
+     0 as the base and $01:0000-1 is a mirror of $00:0000-1.
+   - To be clear: the actual JMP will go to the loaded offset in the current
+     PB, not Bank 0.
+ 
+ * Absolute Indexed Indirect -- (a,X)
+   - Adding X will wrap within the current bank.
+   - Address load wraps within the bank (remember, this loads the target
+     address from PB:a+X, not 00:a like (a) or DB:a+X like (a,X).
+ 
+ * Absolute Long -- l
+   - Word reads in native mode will carry into the next bank.
+ 
+ * Absolute Long Indexed X -- l,X
+   - Adding X may carry into the next bank.
+   - Word reads in native mode will carry into the next bank.
+ 
+ * Direct -- d
+   - Word reads in native mode will always carry across pages. Theoretically,
+     word reads in emulation mode will wrap within the page when DL=0, and
+     carry when DL!=0.
+ 
+ * Direct Indirect -- (d)
+   - Address load: see 'Direct' above.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * Direct Indirect Long -- [d]
+   - Address load: Always carries across pages.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * Direct Indirect Indexed -- (d),Y
+   - Address load: see 'Direct Indirect' above.
+   - When Y is added to the indirect address, it will always carry across banks.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * Direct Indirect Indexed Long -- [d],Y
+   - Address load: see 'Direct Indirect Long' above.
+   - When Y is added to the indirect address, it will always carry across banks.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * Direct Indexed X -- d,X
+   - In native mode, always carry across pages.
+   - In emulation mode, wrap within page if DL=0, otherwise carry.
+   - Word reads in native mode will always carry across pages. Theoretically
+     word reads in emulation mode will wrap within the page when DL=0, and
+     carry when DL!=0.
+   - Reads will NOT carry across banks!
+     e.g. D=$8001, d=1, X=fffe => $00:8000, not $01:8000.
+ 
+ * Direct Indexed Y -- d,Y
+   - Same as Direct Indexed X
+ 
+ * Direct Indexed Indirect -- (d,X)
+   - For address load, see 'Direct Indexed X' above.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * PC Relative -- r
+   - XXX: untested
+ 
+ * PC Relative Long -- rl
+   - XXX: untested
+ 
+ * Stack Relative - d,S
+   - The address always carries across page boundaries. Yes, this means it can
+     exit the emulation mode stack page.
+ 
+ * Stack Relative Indirect Indexed -- (d,S),Y
+   - Address load: see 'Stack Relative' above.
+   - When Y is added to the indirect address, it will always carry across banks.
+   - Data load: Word reads in native mode will carry across pages and banks.
+ 
+ * Block Move
+   - Note that when E=1, X and Y are limited to 8 bits, so everything stays in
+     $00xx.
+
+ * Stack Ops
+   - When E=1, SH is always 1 and so the stack will normally remain within
+     $01xx.
+   - According to the datasheet, the following will somehow access outside
+     $01xx even in emulation mode: JSL; JSR (a,X); PEA; PEI; PER; PHD; PLD;
+     RTL; d,S; (d,S),Y. This is confirmed for PEA; PLD; d,S; and (d,S),Y. 
+     - If S=0100, PEA will overwrite $0100 and $00ff, and S will end up being
+       01FE. $01FF will be unchanged. Obviously, a pull here will not read the
+       data you just PEAed.
+     - Similarly, a PLD at S=01FF will read D from $200, not $100 (OTOH a PLY
+       will read Y from $100 as expected).

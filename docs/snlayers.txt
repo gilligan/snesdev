@@ -1,0 +1,195 @@
+SNES Layering Explained
+Piken (fdwr_at_hotmail.com)
+2004-04-04 / 2003-01-20
+http://oregonstate.edu/~robinsfr/snes.html
+http://members.tripod.com/FDwR/snes.html
+
+
+This doc assumes you already understand the basic concept of what a tilemap
+and scrollable planes are.
+
+The SNES can have up to 4 separate low-color backgrounds, 1 high-color
+scalable, rotatable background, and various combinations in between. How many
+backgrounds (bgs) and the color depth of each one is determined by the current
+video mode (0-7). The most common video mode used by the majority of games is
+mode 1, which has three bgs. They are numbered 1-4, with the lowest ones
+coming first and higher numbered bgs behind them. The absolute 'back' of the
+entire layering is the background color constant plus palette color 0 (both of
+which can be set to any rgb color, rather than the initial black).
+
+Each of the bgs can be designated as either a mainscreen or subscreen (or even
+both). The mainscreens come in front and can be either opaque or translucent.
+The subscreens come behind and are always opaque. When main screens are set
+for translucency, that plane can be seen through back to the subscreens. The
+mode of translucency can be either color addition or subtraction (not both
+modes at the same time for though). If it is additive, the color of the pixels
+behind the layer are added to the main screen. If subtractive, behind pixels
+are subtracted from the main screen.  To visualize it better, it might help to
+think of a single ray tracing through each plane, from the front to as far
+back as it can go. The ray can pass through transparent pixels (using color
+index 0) and translucent pixels (when the layer is set for screen
+addition/addition) but stops at any opaque colored pixels. If every pixel to
+the back is transparent, the ray reaches the background color.
+
+One thing that was really confusing to me is that the main screens are
+translucent, not the subscreens. I always thought that the main screens were
+the opaque layers used by most games, and that subscreens were special layers
+which were used for such special effects. Somehow every document I've ever
+read on addition/subtraction (of course, there aren't that many) has neglected
+to mention that helpful bit of info. They always stated how the subscreens
+were added to the mainscreens, when in actuality, the translucent main screens
+are added to the opaque subscreens behind it. It really does not matter how
+it's actually looked at, since both 1+2=3 and 2+1=3, but the main screens are
+still in front of the subscreens. This does not apply with subtraction though.
+You can't look at it the other way and have it still turn out alright.
+Subscreens are subtracted from main screens, but they are subtracted from
+behind. Interestingly, by doing it this way, all the colors of lower
+subscreens must be completely rgb inverted so that they appear in their
+correct colors on screen. If the main screen was a pure white, a dark blue
+would yield a bright yellow. For example, take a look at the level 'Torchlight
+Trouble' from 'DK Country'. It looks aweful when not in high color mode.
+
+You might think that if there were two translucent main screens and one
+subscreen that the ray would 'trace' through both of the main screens (adding
+their combined translucency togther) before reaching any opaque pixels or the
+back. Although that might allow even cooler effects, that's not how it works.
+As soon as the PPU reaches a translucent (not transparent!) pixel in the main
+screens, it jumps back to the first subscreen skipping any other main screens
+that might be in between. This means that with an opaque main screen of land
+between translucent clouds and a subscreen background, you would actually see
+through the land wherever there were clouds, acting like little windows. Look
+at how they implemented transparency in the water for "Secret of Mana". Bg1 is
+both a main screen and subscreen. As a main screen, the trees can be over the
+ground in bg2, and as a subscreen, it is under the water in bg2.
+
+Basic layering:
+
+(front most layers)
+mainscreens,	bg 1
+		bg 2
+		bg 3
+		bg 4
+subcreens,	bg 1
+		bg 2
+		bg 3
+		bg 4
+background color
+(back most layers)
+
+Another element to throw into all of this is individual tile priority. Each
+individual tile in a bg can be assigned to either the foreground or
+background. It is usually used for setting which things should come in front
+of sprites, and which things should be behind them. You might have noticed in
+the "Forest of Illusion" how Mario appears in front of background bushes but
+is hidden behind tree trunks. Another use of individual tile priority it is to
+allow tiles of one bg to come in front of another bg with a lower number. If
+at a certain location tiles of both bg 1 & 2 had equal priority (whether they
+were both foreground or both background), bg 1 would come in front; however,
+if the bg 2 tile had the foreground priority and bg 1's tile was set for
+background, then bg 2 would come in front.
+
+Although that little quirk confuses things a lot more (and makes screen
+rendering just a little more difficult), it allows things to be more
+versatile. In the "Secret of Mana", you might notice how bg 1 is on top of bg
+2, but parts of bg 2 are in front of bg 1. That's possible because of
+individual tile priority.
+
+Closer to reality layering:
+
+(front most layers)
+mainscreens,	bg 1, 1 (1=Foreground)
+		bg 2, 1
+		bg 1, 0 (0=Background)
+		bg 2, 0
+		bg 3, 1
+		bg 4, 1
+		bg 3, 0
+		bg 4, 0
+subscreens,	bg 1, 1
+		bg 2, 1
+		bg 1, 0
+		bg 2, 0
+		bg 3, 1
+		bg 4, 1
+		bg 3, 0
+		bg 4, 0
+background color
+(back most layers)
+
+One last quirk about SNES layering comes with mode 1 when bg 3 priority is
+turned on. Normally bg 3 (the one with the fewest colors per tile) is in the
+very back of the layers, but with bg 3 priority, any individual tiles set to
+foreground appear at the absolute front. The status info in "Mario World" and
+"Zelda" always come in front of all sprites and layers, translucent or opaque,
+because of this. Bg 3 individual tiles set to background appear in their
+normal plane, at the very back. So it would look like:
+
+main screens,	bg 3, 1 (absolute front now)
+		bg 1, 1
+		bg 2, 1
+		bg 1, 0
+		bg 2, 0
+		------- (where it would normally fit)
+		bg 4, 1
+		bg 3, 0
+		bg 4, 0
+
+Sprites can also use translucency, if set for main screen objects and
+addition/subtraction mode. Unfortunately each object can not be individually
+set as either transparent/opaque or translucent. Instead, the PPU uses the
+object's palette number to tell. Objects with palette 0-3 are opaque while
+those with pal 4-7 are translucent. I'm not sure how the fairy queen Venus in
+"Zelda" is able to fade in and out like that without affecting Link's palette
+(7), unless the game uses HDMA or something to turn off/on object's
+addition/subtraction. This arrangement is rather limiting, but somehow they
+manage to carefully balance all the palettes and make translucent ghosts,
+fairies, and water blobs. You can see one place where they ran into this
+palette sharing problem in the "Mario World" ghost houses when you have a fire
+flower in stock. Are they normally translucent like that?
+
+Just for the sake of knowing how sprites are worked into all this, here is one
+last list. Each object (sprite) can be given a layer priority of 0-3 which
+determines where it fits into things. Unlike the bg's order, the sprites have
+reverse order - higher numbers come in front and lower numbers farther back
+(don't ask me why).
+
+Complete layering:
+
+(front most layers)
+main screens,  (bg 3, 1) if bg 3 priority
+main sprites,	obj 3
+		bg 1, 1
+		bg 2, 1
+		obj 2
+		bg 1, 0
+		bg 2, 0
+		obj 1
+	       (bg 3, 1) if not bg 3 priority
+		bg 4, 1
+		obj 0
+		bg 3, 0
+		bg 4, 0
+sub screens,   (bg 3, 1) if bg 3 priority
+sub sprites,	obj 3
+		bg 1, 1
+		bg 2, 1
+		obj 3
+		bg 1, 0
+		bg 2, 0
+		obj 3
+	       (bg 3, 1) if not bg 3 priority
+		bg 4, 1
+		obj 3
+		bg 3, 0
+		bg 4, 0
+background color
+(back most layers)
+
+----------
+Thanks to:
+----------
+Qwertie for his doc explaining the main screen arrangement, where sprites fit
+in, and how individual tile priority affects things.
+
+ZsKnight for the information on how subscreens relate to main screens, and for
+giving the info to Qwertie in the first place to put into his doc.
