@@ -1,0 +1,37 @@
+CC=gcc
+AS=ca65
+LD=ld65
+DISASM=sfcdis
+UCON=ucon64
+RM=rm -rf
+
+ASFLAGS=--cpu 65816 -I$(SFCKIT)
+LDFLAGS=-C $(SFCKIT)/$(OUTPUT).cfg
+
+
+OBJS= $(SRC:.s=.o)
+all: $(TARGET).swc
+
+xfer: $(output).swc
+	ucon64 --port=$(SWC_PARPORT) --xswc $(TARGET).swc
+
+disasm: clean $(TARGET).swc
+	$(DISASM) -reset -skip $(TARGET).swc > $(TARGET).lst
+
+%.o: %.s
+	$(AS) $(ASFLAGS) $? -o $@
+
+%.o: %.S
+	echo "$@" >> $(TARGET).lnk
+	cc -E $? | sed -e "s,^#\ ,\;," > pre.$?
+	$(AS) $(ASFLAGS) pre.$? $@
+	$(RM) pre.$?
+
+
+$(TARGET).swc: $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(UCON) -q --chk --swc $@ 1>/dev/null
+	@rm $(TARGET).bak >/dev/null
+
+clean:
+	rm -rf $(TARGET) *.o *.swc

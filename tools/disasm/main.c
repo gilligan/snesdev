@@ -4,7 +4,7 @@
 
 extern void find(unsigned char c);
 
-void main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
   int i, cc;
   unsigned char code, a, b;
@@ -298,4 +298,6 @@ void main (int argc, char *argv[])
     }
     if (feof(srcfile)) printf("; End of file.\n");
   }
+
+  return 0;
 }
