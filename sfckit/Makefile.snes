@@ -5,8 +5,8 @@ DISASM=sfcdis
 UCON=ucon64
 RM=rm -rf
 
-ASFLAGS=--cpu 65816 -I$(SFCKIT)
-LDFLAGS=-C $(SFCKIT)/$(OUTPUT).cfg
+ASFLAGS=--cpu 65816 -I$(SFCKIT)/include
+LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg
 
 
 OBJS= $(SRC:.s=.o)
