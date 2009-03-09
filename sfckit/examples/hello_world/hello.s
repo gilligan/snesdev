@@ -5,45 +5,15 @@
 .SEGMENT "BANK0"
 
 reset:
-
         sei
         clc
-        xce
+        xce           ; native mode
 
-        rep #$38
-        .a8
-        .i16
-        ldx #$1fff    ; init stack
-        txs
-        phk
-        plb
-        lda #$0000
-        tcd
-        sep #$20
-
-        .a8
-        .i16
-
-        lda #$80
-        sta $2100
-
+        native_init
         init_snes
 
-        lda #$80
-        sta $2100
-
-        stz $210b
-        stz $2107
-
-        ldx #$0000
-        stx $2116
-
-        ldx #$1000
-@clrlp:
-        ldy #$00
-        sty $2118
-        dex
-        bne @clrlp
+        .a8
+        .i16
 
         load_pal color_test,$00,2
 
