@@ -1,25 +1,59 @@
 .include "header.inc"
+.include "regs.inc"
+.include "std.inc"
 
 .SEGMENT "BANK0"
+
 reset:
 
-        .i16
+        sei
+        clc
+        xce
+
+        rep #$38
         .a8
+        .i16
+        ldx #$1fff    ; init stack
+        txs
+        phk
+        plb
+        lda #$0000
+        tcd
+        sep #$20
 
-	sei                      ; disable inerrupts
-	clc                      ; clear carry bit
-	xce                      ; native mode
+        .a8
+        .i16
 
-	rep     #$38             ; clear decimal mode/ accu = index = 16bit
-	ldx     #$1fff             
-	txs                      ; set up stack
-	phk
-	plb                      ; set up bank register
-	lda     #$0000
-	tcd                      ; set up direct page
-	sep     #$20             ; accu = 8bit
-        
-  
+        lda #$80
+        sta $2100
+
+        init_snes
+
+        lda #$80
+        sta $2100
+
+        stz $210b
+        stz $2107
+
+        ldx #$0000
+        stx $2116
+
+        ldx #$1000
+@clrlp:
+        ldy #$00
+        sty $2118
+        dex
+        bne @clrlp
+
+        load_pal color_test,$00,2
+
+        lda #$01
+        sta $2105
+        sta $212c
+        lda #$0f
+        sta $2100
+
+
 main_loop: 
 jmp main_loop
 
@@ -28,6 +62,10 @@ nmi:
         nop
         nop
         rti
+
+color_test:
+        .byte $ff,$7f
+        .byte $ff,$7f
 
 .segment "BANK1"
         nop

@@ -12,7 +12,7 @@ LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg
 OBJS= $(SRC:.s=.o)
 all: $(TARGET).swc
 
-xfer: $(output).swc
+xfer: $(TARGET).swc
 	ucon64 --port=$(SWC_PARPORT) --xswc $(TARGET).swc
 
 disasm: clean $(TARGET).swc
