@@ -4,11 +4,8 @@
 
 .SEGMENT "BANK0"
 
-reset:
-        sei
-        clc
-        xce           ; native mode
 
+reset:
         native_init
         init_snes
 
@@ -17,11 +14,21 @@ reset:
 
         load_pal color_test,$00,2
 
+        nop
+        nop
+        nop
+        ldx BG_MAP_ADDR($1000)
+        nop
+        nop
+        nop
+
+
         ; BG1 char @ $0000
         ; BG1 map  @ $1000
-        ldx #$0000
+        ;ldx #$0000
+        ldx BG_CHR_ADDR($0000)
         stx BG12NBA
-        ldx #($1000>>8)
+        ldx BG_MAP_ADDR($1000)
         stx BG1SC
 
         ; copy font tiles

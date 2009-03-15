@@ -7,6 +7,9 @@
 ; 
 .macro native_init
 
+        sei
+        clc
+        xce           ; native mode
 
         rep #$38
         .a8
@@ -171,12 +174,6 @@ wait_line:
 	sta   $420b	
 .endmacro
 
-
-.define macro_foo(args) macro_test args
-.macro macro_test addr_a,addr_b
-        addr_a+addr_b
-.endmacro
-
 .macro print_string string
 .local str_loop
 .local done
@@ -191,4 +188,7 @@ str_loop:
 done:
 .endmacro
 
-
+.ifdef CC_PRE_PROCESS
+#define BG_MAP_ADDR(addr) #(addr>>8)
+#define BG_CHR_ADDR(addr) #(addr>>12)
+.endif

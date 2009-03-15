@@ -1,5 +1,5 @@
 TARGET=hello
-SRC=hello.s
+SRC=hello.S
 OUTPUT=smc
 
 

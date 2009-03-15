@@ -9,7 +9,7 @@ ASFLAGS=--cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib
 LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg
 
 
-OBJS= $(SRC:.s=.o)
+OBJS= $(SRC:.S=.o)
 all: $(TARGET).swc
 
 xfer: $(TARGET).swc
@@ -18,19 +18,19 @@ xfer: $(TARGET).swc
 disasm: clean $(TARGET).swc
 	$(DISASM) -reset -skip $(TARGET).swc > $(TARGET).lst
 
-%.o: %.s
-	$(AS) $(ASFLAGS) $? -o $@
 
-%.o: %.S
-	echo "$@" >> $(TARGET).lnk
-	cc -E $? | sed -e "s,^#\ ,\;," > pre.$?
-	$(AS) $(ASFLAGS) pre.$? $@
-	$(RM) pre.$?
+build_includes=$(foreach file,$(shell cat $1 |  grep "^.include" | sed -e 's/.include\ "\(.*\)"/\1/'),-imacros $(file))
 
+%.o: %.S 
+	@echo "ASM     ("$?")"
+	@cc -I. -I$(SFCKIT)/include -E -P $(call build_includes,$?) $?\
+	    | $(AS) $(ASFLAGS) /dev/stdin -o $@
 
 $(TARGET).swc: $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
-	$(UCON) -q --chk --swc $@ 1>/dev/null
+	@echo "LD      ("$?")"
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	@echo "CONVERT ("$@")"
+	@$(UCON) -q --chk --swc $@ 1>/dev/null
 	@rm $(TARGET).bak >/dev/null
 
 clean:
