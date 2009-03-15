@@ -5,7 +5,7 @@ DISASM=sfcdis
 UCON=ucon64
 RM=rm -rf
 
-ASFLAGS=--cpu 65816 -I$(SFCKIT)/include
+ASFLAGS=--cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib
 LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg
 
 

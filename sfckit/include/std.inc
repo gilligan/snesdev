@@ -1,3 +1,10 @@
+;
+; initialize stack and direct page
+; set 8bit accu / 16bit index
+;
+; input : --
+; output: --
+; 
 .macro native_init
 
 
@@ -14,19 +21,37 @@
         sep #$20      ; direct page at $0000
 .endmacro
 
+;
+; clears ppu registers and vram
+; 
+; input : --
+; output: --
+;
 .macro init_snes
 
         .local clear_ppu
         .local clear_vram
         
         lda #$80
-        sta $2100
+        sta INIDISP
 
         ldx #$33
 clear_ppu:
         stz $2100,x
         dey
         bne clear_ppu
+
+        ; scroll BG's down 1 pixel so
+        ; that first scanline is not hidden
+        lda #$ff
+        sta BG1VOFS
+        stz BG1VOFS
+        sta BG2VOFS
+        stz BG2VOFS
+        sta BG3VOFS
+        stz BG3VOFS
+        sta BG4VOFS
+        stz BG4VOFS
 
         ldx #$0000
         stx VMADDL
@@ -35,8 +60,6 @@ clear_vram:
         sty $2118
         dex
         bne clear_vram
-        
-
 .endmacro
 
 .macro move_block_positive src_bank,src_ofs,dest_bank,dest_ofs,len
@@ -83,7 +106,38 @@ clear_vram:
         nop
 .endmacro
 
+;
+; waits for the hblank period of scanline [line]
+;
+; input : scanline to wait for
+; output: --
+;
+.macro wait_scanline line
+.local wait_line
+wait_line:
+	lda $2137
+	lda $213d
+	tay
+	lda $213d
+	and #$01
+	pha
+	tya
+	pha
+	plx
+	cpx #line
+	bne wait_line
 
+	waitHBLANK
+.endmacro
+
+;
+; loads [color_count]*2 bytes of data from [pal_data] to cgram at [cgram_addr]
+; 
+; input: [pal_data] palette data source address
+;        [cgram_addr] destination address in cgram
+;        [color_count] number of colors to copy (bytes=colors*2)
+; output: --
+; 
 .macro load_pal pal_data, cgram_addr, color_count
 	
 	ldy #$0000
@@ -100,3 +154,41 @@ clear_vram:
 	cpy #color_count*2
 	bne @color_loop
 .endmacro
+
+.macro g_dma_transfer src_addr, dest_addr, count
+
+	ldx   #src_addr
+	stx   $4302
+	lda   #^src_addr
+	sta   $4304
+	ldx   #count
+	stx   $4305
+	lda   #dest_addr
+	sta   $4301
+	lda   #$01
+	sta   $4300
+	lda   #$01
+	sta   $420b	
+.endmacro
+
+
+.define macro_foo(args) macro_test args
+.macro macro_test addr_a,addr_b
+        addr_a+addr_b
+.endmacro
+
+.macro print_string string
+.local str_loop
+.local done
+        ldx #$00
+str_loop:
+        lda string,x
+        beq done
+        sta VMDATAL
+        stz VMDATAH
+        inx
+        bra str_loop
+done:
+.endmacro
+
+
