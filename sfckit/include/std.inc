@@ -174,9 +174,13 @@ wait_line:
 	sta   $420b	
 .endmacro
 
-.macro print_string string
+.macro print_string string,dest
 .local str_loop
 .local done
+.ifnblank dest
+        ldx #dest
+        stx VMADDL
+.endif
         ldx #$00
 str_loop:
         lda string,x
@@ -189,6 +193,35 @@ done:
 .endmacro
 
 .ifdef CC_PRE_PROCESS
+
+; INIDISP
+#define FORCE_BLANK #$80
+#define FULL_BRIGHTNESS #$0F
+
+; OBSEL
+#define OBJ_SIZE_8X8_16X16   #$00
+#define OBJ_SIZE_8X8_32X32   #$01
+#define OBJ_SIZE_8x8_64X64   #$02
+#define OBJ_SIZE_16X16_32X32 #$03
+#define OBJ_SIZE_16X16_64X64 #$04
+#define OBJ_SIZE_32X32_64X64 #$05
+
+
+; BG1SC,BG2SC,BG3SC,BG4SC
 #define BG_MAP_ADDR(addr) #(addr>>8)
-#define BG_CHR_ADDR(addr) #(addr>>12)
+#define BG_SIZE_32X32 0
+#define BG_SIZE_64X32 1
+#define BG_SIZE_32X64 2
+#define BG_SIZE_64X64 3
+
+; BG12NBA
+#define BG1_CHR_ADDR(addr) #(addr>>12)
+#define BG2_CHR_ADDR(addr) #(addr>>8)
+
+; BG34NBA
+#define BG3_CHR_ADDR(addr) #(addr>>12)
+#define BG4_CHR_ADDR(addr) #(addr>>8)
+
+
+
 .endif

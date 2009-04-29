@@ -14,6 +14,10 @@ TileConverter::TileConverter( ConvertOptions*   o )
         tileMap.setEmptyTile( true );
     }
 
+    if ( opt->gameboyMode() ){
+        tileMap.mode = GB_MAP_MODE;
+    }
+
     tileMap.setTileOffset( opt->getOffset()+delta );
 
 }
@@ -107,7 +111,7 @@ void TileConverter::output()
     if ( opt->createMap() )
     {
         *outDev<<endl<< QString( opt->getLabel() + QString("_map:"))<<endl;
-        for ( uint i=0; i<tileMap.getMapSize(); i++ )
+        for ( uint i=0; i< (opt->imageWidth()/8 * opt->imageHeight()/8 ) ; i++ )
         {
             if ( i%16 == 0 )
                 *outDev << endl << ".db ";

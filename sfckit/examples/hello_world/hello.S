@@ -25,20 +25,18 @@ reset:
 
         ; BG1 char @ $0000
         ; BG1 map  @ $1000
-        ;ldx #$0000
-        ldx BG_CHR_ADDR($0000)
+
+        ldx BG1_CHR_ADDR($0000)
         stx BG12NBA
         ldx BG_MAP_ADDR($1000)
         stx BG1SC
 
         ; copy font tiles
+
         ldx #$0000
         stx VMADDL
         g_dma_transfer font, $18, font_end-font
-
-        ldx #$1000
-        stx VMADDL
-        print_string hello_world
+        print_string hello_world,$1000
 
         ; set mode 0
         ; enable bg1

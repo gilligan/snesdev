@@ -9,7 +9,6 @@ void ConvertOptions::convert()
 {
         
 }
-
 bool ConvertOptions::validate()
 {
     // check for mandatory arguments
@@ -25,6 +24,8 @@ bool ConvertOptions::validate()
    {
        if ( bpp!=2 )
            return false;
+
+       gbMode = 1;
 
    }
 
