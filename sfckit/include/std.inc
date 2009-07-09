@@ -12,16 +12,21 @@
         xce           ; native mode
 
         rep #$38
-        .a8
-        .i16          ; 8bit accu / 16bit index
+        .a16
+        .i16          ; 16bit accu / 16bit index
 
         ldx #$1fff    
         txs           ; stack at $1fff
+
         phk
         plb
         lda #$0000
-        tcd
-        sep #$20      ; direct page at $0000
+        tcd           ; direct page at $0000
+
+        sep #$20      ; 8bit accu / 16bit index
+        .a8
+        .i16
+
 .endmacro
 
 ;

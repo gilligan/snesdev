@@ -1,9 +1,14 @@
+.include "regs.inc"
+.SEGMENT "STDLIB"
+
+.global print_memory
 
 ; X = memory addr
 ; Y = number of bytes
 .proc print_memory
 
-        lda $00,x
+        ;lda $00,x
+        lda $7e0000,x
 
         lsr
         lsr
@@ -12,7 +17,7 @@
 
         clc
         pha
-        sbc #11
+        sbc #9
         bmi val1_below_10
 
         pla
@@ -31,12 +36,13 @@ val1_done:
        sta VMDATAL
        stz VMDATAH 
 
-       lda $00,x
+       ;lda $00,x
+       lda $7e0000,x
        and #$0f ; get second digit
 
-       clc
        pha
-       sbc #11
+       clc
+       sbc #9
        bmi val2_below_10
 
        pla
@@ -58,6 +64,6 @@ val2_done:
       dey
       bne print_memory
 
-      rts
+      rtl
 .endproc
 

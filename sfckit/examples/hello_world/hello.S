@@ -2,26 +2,25 @@
 .include "regs.inc"
 .include "std.inc"
 
+#define SADDR $00e000
+
 .SEGMENT "BANK0"
 
-
 reset:
+
         native_init
         init_snes
 
+        lda #$01
+        sta JOYSER1
+
         .a8
         .i16
+        .smart
 
-        load_pal color_test,$00,2
 
-        nop
-        nop
-        nop
+        load_pal colors,$00,2
         ldx BG_MAP_ADDR($1000)
-        nop
-        nop
-        nop
-
 
         ; BG1 char @ $0000
         ; BG1 map  @ $1000
@@ -48,20 +47,52 @@ reset:
         lda #$0f
         sta INIDISP
 
+        lda #$80
+        sta $4200
+        cli
 
 main_loop: 
-jmp main_loop
+
+        jsl serial_read_byte_noblock
+        cmp #'q'
+        beq quit
+
+        jmp main_loop
+
+
+quit:
+        jsl swc_return_to_bios
+
 
 nmi:
+
+        phb
+        pha
+        phx
+        phy
+        phd
+
+        inc $00
+        lda $00
+        sta BG1VOFS
+
         nop
         nop
         nop
+        lda $4210
+
+        pld
+        ply
+        plx
+        pla
+        plb
+
         rti
 
 hello_world:
         .asciiz "SFCKIT: HELLO WORLD!"
 
-color_test:
+colors:
         .byte $00,$00
         .byte $ff,$7f
 
@@ -69,8 +100,6 @@ font:
 .incbin "font.bin"
 font_end:
 
-.segment "BANK1"
-        nop
 .segment "BANK2"
         nop
 .segment "BANK3"

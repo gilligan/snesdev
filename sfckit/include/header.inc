@@ -6,6 +6,8 @@
         .word $AAAA,$5555
 
 .segment "VECTORS"
-        .res $1C
-        .word reset   ; reset
+        .res $0A
+        .word nmi    
+        .res $10
+        .word reset
 

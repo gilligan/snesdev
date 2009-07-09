@@ -1,15 +1,5 @@
-CC=gcc
-AS=ca65
-LD=ld65
-DISASM=sfcdis
-UCON=ucon64
-RM=rm -rf
+include $(SFCKIT)/snes.rules
 
-ASFLAGS=--cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib
-LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg
-
-
-OBJS= $(SRC:.S=.o)
 all: $(TARGET).swc
 
 xfer: $(TARGET).swc
@@ -18,19 +8,15 @@ xfer: $(TARGET).swc
 disasm: clean $(TARGET).swc
 	$(DISASM) -reset -skip $(TARGET).swc > $(TARGET).lst
 
-
-build_includes=$(foreach file,$(shell cat $1 |  grep "^.include" | sed -e 's/.include\ "\(.*\)"/\1/'),-imacros $(file))
-
-%.o: %.S 
-	@echo "ASM     ("$?")"
-	@cc -I. -I$(SFCKIT)/include -E -P $(call build_includes,$?) $?\
-	    | $(AS) $(ASFLAGS) /dev/stdin -o $@
+emu: $(TARGET).swc
+	$(EMU) $(EMUARGS) $(TARGET).swc
 
 $(TARGET).swc: $(OBJS)
 	@echo "LD      ("$?")"
-	@$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
 	@echo "CONVERT ("$@")"
 	@$(UCON) -q --chk --swc $@ 1>/dev/null
+	@$(UCON) --poke=2:02 $@ 1>/dev/null
 	@rm $(TARGET).bak >/dev/null
 
 clean:
