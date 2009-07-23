@@ -1,16 +1,17 @@
 .include "regs.inc"
 .SEGMENT "STDLIB"
 
-.global serial_read_byte
-.global serial_read_byte_noblock
-.global serial_write_byte
+.global __serial_read_byte
+.global __serial_read_byte_noblock
+.global __serial_write_byte
 
 ;
 ; receive byte into A
 ; using serial connection over joypad port 2
 ; assumes 57600 8N1
 ; (code by blaarg!)
-.proc serial_read_byte
+.proc __serial_read_byte
+
 	; Wait for start bit
 	lda #1
 :       bit JOYSER1     ; wait for idle
@@ -48,7 +49,7 @@
         
 .endproc
 
-.proc serial_write_byte
+.proc __serial_write_byte
 	asl a           ; start bit=0
         phx
 	
@@ -77,7 +78,7 @@
 .endproc
 
 
-.proc serial_read_byte_noblock
+.proc __serial_read_byte_noblock
 
         lda #$00
 
@@ -124,6 +125,7 @@
 	bcc :-          ; 22 loop until initial bit 7 shifts out
 	
 recv_timeout:
+
 	rtl
         
 .endproc

@@ -1,3 +1,5 @@
+.include "types.inc"
+
 ;
 ; initialize stack and direct page
 ; set 8bit accu / 16bit index
@@ -70,49 +72,12 @@ clear_vram:
         bne clear_vram
 .endmacro
 
-.macro move_block_positive src_bank,src_ofs,dest_bank,dest_ofs,len
-
-        phb
-        rep #$30
-        .a16
-        .i16
-        lda len-1
-        ldx src_ofs
-        ldy dest_ofs
-        mvn src_bank, dest_bank
-        sep #$20
-        .a8
-        .i16
-        plb
-
+.macro neg
+        clc
+        eor #$ff
+        adc #$01
 .endmacro
 
-.macro move_block_negative src_bank,src_ofs,dest_bank,dest_ofs,len
-
-        phb
-        rep #$30
-        .a16
-        .i16
-        lda len-1
-        ldx src_ofs
-        ldy dest_ofs
-        mvn src_bank, dest_bank
-        sep #$20
-        .a8
-        .i16
-        plb
-
-.endmacro
-
-.macro gDMA src,dest,len
-        nop
-        nop
-.endmacro
-
-.macro gDMA_RAM
-        nop
-        nop
-.endmacro
 
 ;
 ; waits for the hblank period of scanline [line]
@@ -197,7 +162,133 @@ str_loop:
 done:
 .endmacro
 
+.macro push_argument arg
+        .if (.match (.left (1,{arg}),x))
+                phx
+        .elseif (.match (.left (1,{arg}),y))
+                phy
+        .elseif (.match (.left (1,{arg}),'('))
+                pei arg
+        .else
+                pea arg
+        .endif
+.endmacro
+
+.macro process_arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
+        .ifnblank arg8
+                push_argument arg8
+        .endif
+        .ifnblank arg7
+                push_argument arg7
+        .endif
+        .ifnblank arg6
+                push_argument arg6
+        .endif
+        .ifnblank arg5
+                push_argument arg5
+        .endif
+        .ifnblank arg4
+                push_argument arg4
+        .endif
+        .ifnblank arg3
+                push_argument arg3
+        .endif
+        .ifnblank arg2
+                push_argument arg2
+        .endif
+        .ifnblank arg1
+                push_argument arg1
+        .endif
+.endmacro
+
+
+.macro call fptr, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
+        process_arguments arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
+               ;
+        pha    ; dummy byte - jsr puts 2 bytes on stack/ jsl 3 bytes
+               ;
+        jsr fptr
+.endmacro
+
+.macro fcall fptr, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
+        process_arguments arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
+        jsl fptr
+.endmacro
+
+
+.macro PROC_PROLOGUE
+        pha
+        phx
+        phy
+        php
+        phd
+        tsc
+        tcd
+.endmacro
+
+.macro PROC_EPILOGUE
+        tdc
+        tcs
+        pld
+        plp
+        ply
+        plx
+        pla
+        rtl  ; for now stick to always assuming jsl/rtl
+.endmacro
+
+.macro build_dma_tag control,dest,src_ofs,src_bank,len
+        .byte control
+        .byte dest
+        .word src_ofs
+        .byte src_bank
+        .word len
+.endmacro
+
+.macro bg_init __bg,__char,__map,__size,__scx,__scy
+        ldx __char
+        stx __bg+bg_t::char
+        ldx __map
+        stx __bg+bg_t::map
+        lda __size
+        sta __bg+bg_t::size
+        ldx __scx
+        stx __bg+bg_t::scx
+        ldx __scy
+        stx __bg+bg_t::scy
+.endmacro
+
+.define ARG_1 12
+.define ARG_2 14
+.define ARG_3 16
+.define ARG_4 18
+.define ARG_5 20
+.define ARG_6 22
+.define ARG_7 23
+.define ARG_8 25
+
+.define BUTTON_A     #(1<<7) ;
+.define BUTTON_X     #(1<<6) ;
+.define BUTTON_L     #(1<<5) ;
+.define BUTTON_R     #(1<<4) ; low ($4218)
+
+.define BUTTON_B     #(1<<7) ;
+.define BUTTON_Y     #(1<<6) ;
+.define BUTTON_SEL   #(1<<5) ; high ($4219)
+.define BUTTON_STA   #(1<<4) ;
+.define BUTTON_UP    #(1<<3) ;
+.define BUTTON_DOWN  #(1<<2) ;
+.define BUTTON_LEFT  #(1<<1) ; 
+.define BUTTON_RIGHT #(1<<0) ;
+
+.define MAP_SIZE $800
+
+
 .ifdef CC_PRE_PROCESS
+
+#define DMA_TRANSFER_TAG(name,ctr,dst,src,bnk,len) name: build_dma_tag ctr,dst,src,bnk,len
+#define CALL(fptr, ...) call fptr, ## __VA_ARGS__ 
+#define FCALL(fptr, ...) fcall fptr, ## __VA_ARGS__
 
 ; INIDISP
 #define FORCE_BLANK #$80
@@ -210,6 +301,8 @@ done:
 #define OBJ_SIZE_16X16_32X32 #$03
 #define OBJ_SIZE_16X16_64X64 #$04
 #define OBJ_SIZE_32X32_64X64 #$05
+
+#define INIT_BG(bg,char,map,size,scx,scy) bg_init bg,char,map,size,scx,scy
 
 
 ; BG1SC,BG2SC,BG3SC,BG4SC

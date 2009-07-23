@@ -3,12 +3,12 @@
 
 .smart
 
-.global swc_return_to_bios
+.global __swc_return_to_bios
 
 .define SWC_ENTRY_ADDR $00e4e0
 .define SWC_RAM_BUFFER $7e0100
 
-.proc swc_return_to_bios
+.proc __swc_return_to_bios
 
         ldx #$0000
 copy_to_ram:
