@@ -11,7 +11,10 @@ disasm: clean $(TARGET).swc
 emu: $(TARGET).swc
 	$(EMU) $(EMUARGS) $(TARGET).swc
 
-$(TARGET).swc: $(OBJS)
+libs:
+	@make -C $(SFCKIT)/lib
+
+$(TARGET).swc: $(OBJS) libs
 	@echo "LD      ("$?")"
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
 	@echo "CONVERT ("$@")"

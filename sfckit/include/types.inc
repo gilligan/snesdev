@@ -17,11 +17,12 @@
 .endstruct
 
 .struct bg_t
-        char .word  ; BG1 char address
-        map  .word  ; BG1 map address
-        size .byte  ; BG1 size
-        scx  .word  ; BG1 scroll-x
-        scy  .word  ; BG1 scroll-y
+        id   .byte  ; BG id number (1-4)
+        char .word  ; BG char address
+        map  .word  ; BG map address
+        size .byte  ; BG size
+        scx  .word  ; BG scroll-x
+        scy  .word  ; BG scroll-y
 .endstruct
 
 .struct display_t
