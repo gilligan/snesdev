@@ -245,7 +245,9 @@ done:
         .word len
 .endmacro
 
-.macro bg_init __bg,__char,__map,__size,__scx,__scy
+.macro bg_init __bg,__id,__char,__map,__size,__scx,__scy
+        lda __id
+        sta __bg+bg_t::id
         ldx __char
         stx __bg+bg_t::char
         ldx __map
@@ -302,7 +304,7 @@ done:
 #define OBJ_SIZE_16X16_64X64 #$04
 #define OBJ_SIZE_32X32_64X64 #$05
 
-#define INIT_BG(bg,char,map,size,scx,scy) bg_init bg,char,map,size,scx,scy
+#define INIT_BG(bg,id,char,map,size,scx,scy) bg_init bg,id,char,map,size,scx,scy
 
 
 ; BG1SC,BG2SC,BG3SC,BG4SC

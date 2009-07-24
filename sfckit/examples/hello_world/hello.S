@@ -27,7 +27,10 @@ reset:
         .i16
         .smart
 
-        INIT_BG(bg1,#$0000,#$1000,#$00,#$0000,#$0000)
+
+        INIT_BG(bg1,1,#$0000,#$1000,#$00,#$0000,#$0000)
+        INIT_BG(bg2,2,#$0000,#$1800,#$00,#$0000,#$0000)
+        INIT_BG(bg3,3,#$3000,#$2000,#$00,#$0000,#$0000)
 
         ; load cgram data
         load_pal colors,$00,4
@@ -35,17 +38,17 @@ reset:
         ; BG1/BG2/BG3/BG4 char @ $0000
         ; BG1 map  @ $1000
 
-        ldx BG1_CHR_ADDR($0000)
-        stx BG12NBA
-        ldx BG3_CHR_ADDR($3000)
-        stx BG34NBA
+        ;ldx BG1_CHR_ADDR($0000)
+        ;stx BG12NBA
+        ;ldx BG3_CHR_ADDR($3000)
+        ;stx BG34NBA
 
-        ldx BG_MAP_ADDR($1000)
-        stx BG1SC
-        ldx BG_MAP_ADDR($1800)
-        stx BG2SC
-        ldx BG_MAP_ADDR($2000)
-        stx BG3SC
+        ;ldx BG_MAP_ADDR($1000)
+        ;stx BG1SC
+        ;ldx BG_MAP_ADDR($1800)
+        ;stx BG2SC
+        ;ldx BG_MAP_ADDR($2000)
+        ;stx BG3SC
 
 
         ; copy 4bpp font tiles
