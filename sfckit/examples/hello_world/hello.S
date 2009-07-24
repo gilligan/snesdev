@@ -13,14 +13,15 @@
         bg1:     .tag bg_t
         bg2:     .tag bg_t
         bg3:     .tag bg_t
-        display: .tag display_t
 
 .SEGMENT "HIRAM" : FAR
 
 .SEGMENT "BANK0"
 
+
 reset:
         native_init
+        FCALL(config_bg,bg1)
         init_snes
 
         .a8

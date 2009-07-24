@@ -24,7 +24,6 @@
         plb
         lda #$0000
         tcd           ; direct page at $0000
-
         sep #$20      ; 8bit accu / 16bit index
         .a8
         .i16
@@ -245,19 +244,24 @@ done:
         .word len
 .endmacro
 
-.macro bg_init __bg,__id,__char,__map,__size,__scx,__scy
+.macro bg_init __bg,__id,__char1,__map1,__size1,__char2,__map2,__size2
         lda __id
         sta __bg+bg_t::id
-        ldx __char
-        stx __bg+bg_t::char
-        ldx __map
-        stx __bg+bg_t::map
-        lda __size
-        sta __bg+bg_t::size
-        ldx __scx
-        stx __bg+bg_t::scx
-        ldx __scy
-        stx __bg+bg_t::scy
+
+        ldx __char1
+        stx __bg+bg_t::char_1
+        ldx __map1
+        stx __bg+bg_t::map_1
+        lda __size1
+        sta __bg+bg_t::size_1
+
+        ldx __char2
+        stx __bg+bg_t::char_2
+        ldx __map2
+        stx __bg+bg_t::map_2
+        lda __size2
+        sta __bg+bg_t::size_2
+
 .endmacro
 
 .define ARG_1 12
@@ -304,7 +308,7 @@ done:
 #define OBJ_SIZE_16X16_64X64 #$04
 #define OBJ_SIZE_32X32_64X64 #$05
 
-#define INIT_BG(bg,id,char,map,size,scx,scy) bg_init bg,id,char,map,size,scx,scy
+#define INIT_BG(bg,id1,char1,map1,size1,char2,map2,size2) bg_init bg,id,char1,map1,size1,char2,map2,size2
 
 
 ; BG1SC,BG2SC,BG3SC,BG4SC
