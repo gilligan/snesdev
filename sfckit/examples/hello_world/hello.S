@@ -2,6 +2,16 @@
 .include "regs.inc"
 .include "std.inc"
 
+.global main
+.global mem_pool
+.global DEBUG_FONT_DMA,brk_info,debug_colors
+
+;
+; use font1 for debug output
+;
+DEBUG_FONT_DMA := font1_dma
+
+
 .SEGMENT "ZEROPAGE"
 
         ; careful with zeropage!
@@ -10,101 +20,99 @@
 
 .SEGMENT "BSS"
 
-        bg1:     .tag bg_t
-        bg2:     .tag bg_t
-        bg3:     .tag bg_t
+        mem_pool:   .res 64  
 
-.SEGMENT "HIRAM" : FAR
+.SEGMENT "HRAM" : FAR
+.SEGMENT "HRAM2" : FAR
+.SEGMENT "HDATA" : FAR
+.SEGMENT "XCODE"
 
-.SEGMENT "BANK0"
+.SEGMENT "CODE"
 
-
-reset:
-        native_init
-        FCALL(config_bg,bg1)
-        init_snes
-
+main:
         .a8
         .i16
         .smart
 
 
-        INIT_BG(bg1,1,#$0000,#$1000,#$00,#$0000,#$0000)
-        INIT_BG(bg2,2,#$0000,#$1800,#$00,#$0000,#$0000)
-        INIT_BG(bg3,3,#$3000,#$2000,#$00,#$0000,#$0000)
+        ; 
+        ; set BG properties
+        ;
 
-        ; load cgram data
-        load_pal colors,$00,4
+        ldx BG1_CHR_ADDR($0000)
+        stx BG12NBA
+        ldx BG3_CHR_ADDR($3000)
+        stx BG34NBA
 
-        ; BG1/BG2/BG3/BG4 char @ $0000
-        ; BG1 map  @ $1000
-
-        ;ldx BG1_CHR_ADDR($0000)
-        ;stx BG12NBA
-        ;ldx BG3_CHR_ADDR($3000)
-        ;stx BG34NBA
-
-        ;ldx BG_MAP_ADDR($1000)
-        ;stx BG1SC
-        ;ldx BG_MAP_ADDR($1800)
-        ;stx BG2SC
-        ;ldx BG_MAP_ADDR($2000)
-        ;stx BG3SC
+        ldx BG_MAP_ADDR($1000)
+        stx BG1SC
+        ldx BG_MAP_ADDR($1800)
+        stx BG2SC
+        ldx BG_MAP_ADDR($2000)
+        stx BG3SC
 
 
-        ; copy 4bpp font tiles
+        ;
+        ; copy font & cgram data
+        ;
+
         ldx #$0000
         stx VMADDL
-        FCALL(g_dma_tag_2,font1_dma)
-
-        ; copy 2bpp font tiles
+        CALL(g_dma_tag_2,font1_dma)
         ldx #$3000
         stx VMADDL
-        FCALL(g_dma_tag_2,font2_dma)
+        CALL(g_dma_tag_2,font2_dma)
+        lda #$00
+        sta $2121
+        CALL(g_dma_tag_2,cgdata_dma)
 
-        ; print text on BG1
+
+        ;
+        ; print some text
+        ;
+
+
         ldx #$1000
         stx VMADDL
-        FCALL(puts,hello_world1)
+        PUTS("hello:bg1")
 
-        ; print text on BG2
         ldx #$1800+(32*2)
         stx VMADDL
-        FCALL(puts,hello_world2)
+        PUTS("hello:bg2")
 
-        ; print text on BG3
         ldx #$2000+(2*32*2)
         stx VMADDL
-        FCALL(puts,hello_world3)
+        PUTS("hello:bg3")
 
-        ; set mode 0
-        ; enable bg1
+        ;
+        ; config & enable display
+        ;
+
         lda #$01
         sta BGMODE
-
         lda #$07
         sta TM
-
-        ; full brightness
         lda #$0f
         sta INIDISP
 
-        ; enable NMI and
-        ; automatic joypad reading
+        ;
+        ; enable NMI/joypad reading
+        ;
+
         lda #$81
         sta $4200
         cli
-
-        stz $0000
-        stz $0001
 
 main_loop: 
 
         jmp main_loop
 
 quit:
-        jsl __swc_return_to_bios
 
+
+brk_handler:
+
+        jmp __debug_handler
 
 nmi:
 
@@ -115,18 +123,15 @@ nmi:
         phd
 
 
-        jsl process_joypads
+        .ifdef SWC
+
+        jsr process_joypads
         lda joy1_held
         beq :+
+                jsr __swc_return_to_bios
+        :
 
-        inc $0000
-        lda $0000
-        sta BG1VOFS
-:
-
-        nop
-        nop
-        nop
+        .endif
 
         lda $4210
 
@@ -142,9 +147,9 @@ nmi:
 ;
 ; screen setup and dma transfers
 ;
-
 DMA_TRANSFER_TAG(font1_dma,1,$18,font1,^font1,font_end1-font1)
 DMA_TRANSFER_TAG(font2_dma,1,$18,font2,^font2,font_end2-font2)
+DMA_TRANSFER_TAG(cgdata_dma,0,$22,colors,^colors,colors_end-colors)
 
 ;
 ; graphics data 
@@ -162,6 +167,16 @@ colors:
         .byte $ff,$7f
         .byte $00,$00
         .byte $ff,$7f
+colors_end:
+
+brk_info:
+        .asciiz "! %p:%P (A:%p X:%P Y:%P)"
+
+debug_colors:
+        .byte $00,$00
+        .byte $ff,$7f
+        .byte $00,$00
+        .byte $ff,$7f
 
 
 font1: .incbin "font4bpp.bin"
@@ -169,17 +184,3 @@ font_end1:
 
 font2: .incbin "font2bpp.bin"
 font_end2:
-
-.segment "BANK2"
-        nop
-.segment "BANK3"
-        nop
-.segment "BANK4"
-        nop
-.segment "BANK5"
-        nop
-.segment "BANK6"
-        nop
-.segment "BANK7"
-        nop
-

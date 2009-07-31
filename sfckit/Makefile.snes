@@ -16,11 +16,11 @@ libs:
 
 $(TARGET).swc: $(OBJS) libs
 	@echo "LD      ("$?")"
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
 	@echo "CONVERT ("$@")"
 	@$(UCON) -q --chk --swc $@ 1>/dev/null
-	@$(UCON) --poke=2:02 $@ 1>/dev/null
+	@$(UCON) --poke=2:3e $@ 1>/dev/null
 	@rm $(TARGET).bak >/dev/null
 
 clean:
-	rm -rf $(TARGET) *.o *.swc
+	-rm -rf $(TARGET) *.o *.swc .cpp_$(TARGET).* >/dev/null

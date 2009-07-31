@@ -1,6 +1,9 @@
-.include "regs.inc"
-.SEGMENT "STDLIB"
+.include "std.inc"
 
+.SEGMENT "CODE"
+
+.a8
+.i16
 .smart
 
 .global __swc_return_to_bios
@@ -23,7 +26,7 @@ copy_to_ram:
 swc_boot_code:
 
         lda #$ff
-        sta $e004  ; switch to swc mode 0
+        sta $00e004  ; switch to swc mode 0
 
         nop
         nop
@@ -33,13 +36,20 @@ swc_boot_code:
         sei
         clc
         xce
-        phk
+
+        ;phk
+        ;plb
+        lda #$00
+        pha
         plb
+
         rep #$20
         lda #$01ff
         tcs
+        lda #$0000
+        tcd
         sep #$30
-        stz $c008
+        stz $00c008
         stz $420b
         stz $420c
         stz $420d

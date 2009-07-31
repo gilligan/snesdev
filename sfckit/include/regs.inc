@@ -1,6 +1,9 @@
 
 ; SNES register addresses
 
+.ifndef __SNES_INC__
+__SNES_INC__ = 1
+
 ; PPU
 INIDISP = $2100
 OBSEL   = $2101
@@ -109,3 +112,86 @@ DMA_CHAN4= $4340
 DMA_CHAN5= $4350
 DMA_CHAN6= $4360
 DMA_CHAN7= $4370
+
+DMAP0		:= 4300h	; DMA Control Register			1B/W
+BBAD0		:= 4301h	; DMA Destination Register		1B/W
+A1T0		:= 4302h	; DMA Source Address			2B/W
+A1T0L		:= 4302h	;
+A1T0H		:= 4303h	;
+A1B0		:= 4304h	; Source Bank Address			1B/W
+DAS0		:= 4305h	; DMA Transfer size/HDMA Address	2B/W
+DAS0L		:= 4305h	;
+DAS0H		:= 4306h	;
+NLTR0		:= 430Ah	; Number Of Lines For HDMA		1B/W
+DMAP1		:= 4310h	; DMA 1
+BBAD1		:= 4311h	;
+A1T1		:= 4312h	;
+A1T1L		:= 4312h	;
+A1T1H		:= 4313h	;
+A1B1		:= 4314h	;
+DAS1		:= 4315h	;
+DAS1L		:= 4315h	;
+DAS1H		:= 4316h	;
+NLTR1		:= 431Ah	;
+DMAP2		:= 4320h	; DMA 2
+BBAD2		:= 4321h	;
+A1T2		:= 4322h	;
+A1T2L		:= 4322h	;
+A1T2H		:= 4323h	;
+A1B2		:= 4324h	;
+DAS2		:= 4325h	;
+DAS2L		:= 4325h	;
+DAS2H		:= 4326h	;
+NLTR2		:= 432Ah	;
+DMAP3		:= 4330h	; DMA 3
+BBAD3		:= 4331h	;
+A1T3		:= 4332h	;
+A1T3L		:= 4332h	;
+A1T3H		:= 4333h	;
+A1B3		:= 4334h	;
+DAS3		:= 4335h	;
+DAS3L		:= 4335h	;
+DAS3H		:= 4336h	;
+NLTR3		:= 433Ah	;
+DMAP4		:= 4340h	; DMA 4
+BBAD4		:= 4341h	;
+A1T4		:= 4342h	;
+A1T4L		:= 4342h	;
+A1T4H		:= 4343h	;
+A1B4		:= 4344h	;
+DAS4		:= 4345h	;
+DAS4L		:= 4345h	;
+DAS4H		:= 4346h	;
+NLTR4		:= 434Ah	;
+DMAP5		:= 4350h	; DMA 5
+BBAD5		:= 4351h	;
+A1T5		:= 4352h	;
+A1T5L		:= 4352h	;
+A1T5H		:= 4353h	;
+A1B5		:= 4354h	;
+DAS5		:= 4355h	;
+DAS5L		:= 4355h	;
+DAS5H		:= 4356h	;
+NLTR5		:= 435Ah	;
+DMAP6		:= 4360h	; DMA 6
+BBAD6		:= 4361h	;
+A1T6		:= 4362h	;
+A1T6L		:= 4362h	;
+A1T6H		:= 4363h	;
+A1B6		:= 4364h	;
+DAS6		:= 4365h	;
+DAS6L		:= 4365h	;
+DAS6H		:= 4366h	;
+NLTR6		:= 436Ah	;
+DMAP7		:= 4370h	; DMA 7
+BBAD7		:= 4371h	;
+A1T7		:= 4372h	;
+A1T7L		:= 4372h	;
+A1T7H		:= 4373h	;
+A1B7		:= 4374h	;
+DAS7		:= 4375h	;
+DAS7L		:= 4375h	;
+DAS7H		:= 4376h	;
+NLTR7		:= 437Ah	;
+
+.endif

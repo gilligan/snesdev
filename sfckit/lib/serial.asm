@@ -1,5 +1,6 @@
-.include "regs.inc"
-.SEGMENT "STDLIB"
+.include "std.inc"
+
+.SEGMENT "CODE"
 
 .global __serial_read_byte
 .global __serial_read_byte_noblock

@@ -1,6 +1,7 @@
 TARGET=hello
+EXTRA=-DSWC
 SRC=hello.S
-LIB=io swc serial dma joy video
+LIB=init joy dma video io swc debug
 OUTPUT=smc
 
 

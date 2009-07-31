@@ -1,7 +1,6 @@
-.include "regs.inc"
 .include "std.inc"
 
-.SEGMENT "STDLIB"
+.SEGMENT "CODE"
 
         .a8
         .i16
@@ -32,7 +31,6 @@ config_bg:
 
 conf_bg12:
         ldy #$0001
-        lda (bg,y)
         
         
 

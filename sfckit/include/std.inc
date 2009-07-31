@@ -1,82 +1,12 @@
+.include "regs.inc"
 .include "types.inc"
 
-;
-; initialize stack and direct page
-; set 8bit accu / 16bit index
-;
-; input : --
-; output: --
-; 
-.macro native_init
-
-        sei
-        clc
-        xce           ; native mode
-
-        rep #$38
-        .a16
-        .i16          ; 16bit accu / 16bit index
-
-        ldx #$1fff    
-        txs           ; stack at $1fff
-
-        phk
-        plb
-        lda #$0000
-        tcd           ; direct page at $0000
-        sep #$20      ; 8bit accu / 16bit index
-        .a8
-        .i16
-
-.endmacro
-
-;
-; clears ppu registers and vram
-; 
-; input : --
-; output: --
-;
-.macro init_snes
-
-        .local clear_ppu
-        .local clear_vram
-        
-        lda #$80
-        sta INIDISP
-
-        ldx #$33
-clear_ppu:
-        stz $2100,x
-        dey
-        bne clear_ppu
-
-        ; scroll BG's down 1 pixel so
-        ; that first scanline is not hidden
-        lda #$ff
-        sta BG1VOFS
-        stz BG1VOFS
-        sta BG2VOFS
-        stz BG2VOFS
-        sta BG3VOFS
-        stz BG3VOFS
-        sta BG4VOFS
-        stz BG4VOFS
-
-        ldx #$0000
-        stx VMADDL
-        ldx #$8000
-clear_vram:
-        sty $2118
-        dex
-        bne clear_vram
-.endmacro
 
 .macro neg
         clc
         eor #$ff
         adc #$01
 .endmacro
-
 
 ;
 ; waits for the hblank period of scanline [line]
@@ -111,6 +41,7 @@ wait_line:
 ; output: --
 ; 
 .macro load_pal pal_data, cgram_addr, color_count
+.local @color_loop
 	
 	ldy #$0000
 
@@ -233,7 +164,7 @@ done:
         ply
         plx
         pla
-        rtl  ; for now stick to always assuming jsl/rtl
+        rts
 .endmacro
 
 .macro build_dma_tag control,dest,src_ofs,src_bank,len
@@ -289,12 +220,36 @@ done:
 
 .define MAP_SIZE $800
 
+.macro _printf str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
+        .local __string
+        jmp :+
+__string:
+        .asciiz str
+        : 
+        process_arguments __string,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
+        pha
+        jsr printf
+.endmacro
+
+.macro _puts str
+        .local __string
+        jmp :+
+__string:
+        .asciiz str
+        :
+        pea __string
+        pha
+        jsr puts
+.endmacro
+
 
 .ifdef CC_PRE_PROCESS
 
 #define DMA_TRANSFER_TAG(name,ctr,dst,src,bnk,len) name: build_dma_tag ctr,dst,src,bnk,len
 #define CALL(fptr, ...) call fptr, ## __VA_ARGS__ 
 #define FCALL(fptr, ...) fcall fptr, ## __VA_ARGS__
+#define PRINTF(str, ...) _printf str, ## __VA_ARGS__
+#define PUTS(str) _puts str
 
 ; INIDISP
 #define FORCE_BLANK #$80
@@ -307,8 +262,6 @@ done:
 #define OBJ_SIZE_16X16_32X32 #$03
 #define OBJ_SIZE_16X16_64X64 #$04
 #define OBJ_SIZE_32X32_64X64 #$05
-
-#define INIT_BG(bg,id1,char1,map1,size1,char2,map2,size2) bg_init bg,id,char1,map1,size1,char2,map2,size2
 
 
 ; BG1SC,BG2SC,BG3SC,BG4SC
@@ -325,7 +278,6 @@ done:
 ; BG34NBA
 #define BG3_CHR_ADDR(addr) #(addr>>12)
 #define BG4_CHR_ADDR(addr) #(addr>>8)
-
 
 
 .endif

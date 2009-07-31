@@ -1,7 +1,6 @@
 ;
 ; includes
 ;
-.include "regs.inc"
 .include "std.inc"
 
         .a8
@@ -16,6 +15,7 @@
 .global dump_mem_ascii
 .global puts
 .global __byte_to_ascii
+.global printf
 
 ;
 ; variable exports
@@ -27,7 +27,172 @@
 
         hex_ascii: .res 2
 
-.SEGMENT "STDLIB"
+.SEGMENT "CODE"
+
+
+; printf(u16* str,...)
+;
+; prints the format string [str] interpreting the following
+; syntax:
+;           %P : print hex *word
+;           %p : print hex *byte
+;           %X : print hex word
+;           %x : print hex byte
+;
+.proc printf
+
+        str = ARG_1
+        PROC_PROLOGUE
+
+
+                ldy #$0000
+                ldx #$0000
+
+parse_string:
+                lda (str),y
+                bne :+
+                jmp end_of_string
+:
+                cmp #'%'
+                beq check_format
+
+                sta $2118
+                stz $2119
+                iny
+                bra parse_string
+
+check_format:
+                iny
+                lda (str),y         ; get format specifier
+                bne :+              ; continue if != 0
+                jmp end_of_string   ; hit '\0' , exit!
+:
+
+                cmp 'P'             ; print *word ?
+                beq print_word_ptr
+
+                cmp 'p'             ; print *byte ?
+                beq print_byte_ptr
+
+                cmp 'X'
+                beq print_word
+
+                cmp 'x'
+                beq print_byte
+
+                iny                 ; invalid format specifier
+                bra parse_string    ; just skip it!
+
+
+print_word:
+                rep #$38
+                .a16
+                lda ARG_2,x
+                xba
+                pha
+                sep #$20
+                .a8
+
+                pla
+                jsr __print_byte
+                pla
+                jsr __print_byte
+
+                inx
+                inx
+                iny
+                bra parse_string
+
+print_byte:
+                lda ARG_2,x
+                jsr __print_byte
+                
+                inx
+                inx
+                iny
+                bra parse_string
+
+print_word_ptr:
+                rep #$38
+                .a16
+                lda (ARG_2,x)
+                swa
+                pha
+                sep #$20
+                .a8
+
+                pla
+                jsr __print_byte
+                pla
+                jsr __print_byte
+
+                inx
+                inx
+                iny
+                bra parse_string
+
+print_byte_ptr:
+                
+                lda (ARG_2,x)
+                jsr __print_byte
+
+                inx
+                inx
+                iny
+                bra parse_string
+
+;                
+; ------------------------------
+;
+__print_byte:
+
+                pha                 ; save input
+
+                lsr
+                lsr
+                lsr
+                lsr                 ; get first digit
+
+                cmp #10
+                blt val_below_10
+                clc
+                adc #55
+                jmp :+
+
+val_below_10:
+
+                clc
+                adc #48
+:
+                sta $2118
+                stz $2119
+
+                pla                 ; restore input
+                and #$0f            ; get second digit
+
+                cmp #10
+                blt val2_below_10
+
+                clc
+                adc #55
+                jmp :+
+
+val2_below_10:
+
+                clc
+                adc #48
+:
+                sta $2118
+                stz $2119
+
+                rts
+
+
+end_of_string:
+
+        PROC_EPILOGUE
+
+.endproc
 
 
 ; bzero(u16* dst, u16 len)
@@ -101,7 +266,7 @@ dump_loop:
 
         lda (src),y
         iny                  ; move index
-        jsl __byte_to_ascii
+        jsr __byte_to_ascii
 
         phy                  ; push src index
 
@@ -189,8 +354,7 @@ val2_below_10:
 ; Y = number of bytes
 .proc print_memory
 
-        ;lda $00,x
-        lda $7e0000,x
+        lda $00,x
 
         lsr
         lsr
@@ -218,8 +382,7 @@ val1_done:
        sta VMDATAL
        stz VMDATAH 
 
-       ;lda $00,x
-       lda $7e0000,x
+       lda $00,x
        and #$0f ; get second digit
 
        pha
@@ -246,6 +409,6 @@ val2_done:
       dey
       bne print_memory
 
-      rtl
+      rts
 .endproc
 

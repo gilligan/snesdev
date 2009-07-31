@@ -1,4 +1,3 @@
-.include "regs.inc"
 .include "std.inc"
 
         .a8
@@ -21,7 +20,7 @@
         joy2_held: .res 2
         joy2_down: .res 2
 
-.SEGMENT "STDLIB"
+.SEGMENT "CODE"
 
 
 

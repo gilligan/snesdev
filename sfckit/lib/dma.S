@@ -1,11 +1,11 @@
-.SEGMENT "STDLIB"
-
-.include "regs.inc"
 .include "std.inc"
 
         .a8
         .i16
         .smart
+
+.SEGMENT "CODE"
+
 
 
 .global g_dma_0
