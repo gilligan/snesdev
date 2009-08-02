@@ -133,16 +133,20 @@ done:
 
 
 .macro call fptr, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
-        process_arguments arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
-               ;
-        pha    ; dummy byte - jsr puts 2 bytes on stack/ jsl 3 bytes
-               ;
-        jsr fptr
-.endmacro
 
-.macro fcall fptr, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
         process_arguments arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
-        jsl fptr
+        jsr fptr
+
+
+        rep #$38
+        .a16
+        tsc                               ;
+        clc                               ; 
+        adc # ( ( .paramcount -1 ) * 2 )  ;
+        tcs                               ; remove args from stack
+        sep #$20
+        .a8
+
 .endmacro
 
 
@@ -195,14 +199,14 @@ done:
 
 .endmacro
 
-.define ARG_1 12
-.define ARG_2 14
-.define ARG_3 16
-.define ARG_4 18
-.define ARG_5 20
-.define ARG_6 22
-.define ARG_7 23
-.define ARG_8 25
+.define ARG_1 12-1
+.define ARG_2 14-1
+.define ARG_3 16-1
+.define ARG_4 18-1
+.define ARG_5 20-1
+.define ARG_6 22-1
+.define ARG_7 23-1
+.define ARG_8 25-1
 
 .define BUTTON_A     #(1<<7) ;
 .define BUTTON_X     #(1<<6) ;
