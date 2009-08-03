@@ -222,7 +222,6 @@ done:
 .define BUTTON_LEFT  #(1<<1) ; 
 .define BUTTON_RIGHT #(1<<0) ;
 
-.define MAP_SIZE $800
 
 .macro _printf str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
         .local __string
@@ -246,6 +245,79 @@ __string:
         jsr puts
 .endmacro
 
+.define OAM_SIZE 544
+.define OAM_XPOS 0
+.define OAM_YPOS 1
+.define OAM_NUM  2
+.define OAM_FLAG 3
+.define OAM_V_FLIP 7
+.define OAM_H_FLIP 6
+.define OAM_PRIO   4
+.define OAM_PAL    1
+.define OAM_NAME   0
+
+; OBSEL
+OBSEL_8_16		= (0<<5)
+OBSEL_8_32		= (1<<5)
+OBSEL_8_64		= (2<<5)
+OBSEL_16_32		= (3<<5)
+OBSEL_16_64		= (4<<5)
+OBSEL_32_64		= (5<<5)
+OBSEL_16x32_32x64	= (6<<5)
+OBSEL_16x32_32x32	= (7<<5)
+OBSEL_NN_16K		= (3<<3)
+OBSEL_NN_12K		= (2<<3)
+OBSEL_NN_8K		= (1<<3)
+
+; TM
+TM_BG1 = (1<<0)
+TM_BG2 = (1<<1)
+TM_BG3 = (1<<2)
+TM_BG4 = (1<<3)
+TM_OBJ = (1<<4)
+
+; BGMODE
+
+BG1_8  = (0<<4)
+BG1_16 = (1<<4)
+BG2_8  = (0<<5)
+BG2_16 = (1<<5)
+BG3_8  = (0<<6)
+BG3_16 = (1<<6)
+BG4_8  = (0<<7)
+BG4_16 = (1<<7)
+
+MODE_0   = 0
+MODE_1   = 1
+MODE_2   = 2
+MODE_3   = 3
+MODE_4   = 4
+MODE_5   = 5
+MODE_6   = 6
+MODE_7   = 7
+MODE_EXT = 8
+
+; NMITIMEN
+
+AUTOJOY_ON = (1<<0)
+NMI_ON     = (1<<7)
+
+
+.define OBSEL_BASE(bbb)	(((bbb*2)>>14))
+
+.macro set_vram_addr addr
+        ldx #addr
+        stx VMADDL
+.endmacro
+
+.macro set_oam_addr addr
+        ldx #addr
+        stx OAMADDL
+.endmacro
+
+
+.define MAP_SIZE $800
+
 
 .ifdef CC_PRE_PROCESS
 
@@ -255,18 +327,12 @@ __string:
 #define PRINTF(str, ...) _printf str, ## __VA_ARGS__
 #define PUTS(str) _puts str
 
+#define SET_VRAM_ADDR(__addr) set_vram_addr __addr
+#define SET_OAM_ADDR(__addr) set_oam_addr __addr
+
 ; INIDISP
 #define FORCE_BLANK #$80
 #define FULL_BRIGHTNESS #$0F
-
-; OBSEL
-#define OBJ_SIZE_8X8_16X16   #$00
-#define OBJ_SIZE_8X8_32X32   #$01
-#define OBJ_SIZE_8x8_64X64   #$02
-#define OBJ_SIZE_16X16_32X32 #$03
-#define OBJ_SIZE_16X16_64X64 #$04
-#define OBJ_SIZE_32X32_64X64 #$05
-
 
 ; BG1SC,BG2SC,BG3SC,BG4SC
 #define BG_MAP_ADDR(addr) #(addr>>8)
@@ -274,7 +340,6 @@ __string:
 #define BG_SIZE_64X32 1
 #define BG_SIZE_32X64 2
 #define BG_SIZE_64X64 3
-
 ; BG12NBA
 #define BG1_CHR_ADDR(addr) #(addr>>12)
 #define BG2_CHR_ADDR(addr) #(addr>>8)

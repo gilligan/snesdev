@@ -1,6 +1,7 @@
 .global dma_tag_t
 .global fifo_t
 
+
 .struct fifo_t
         buffer .word
         size   .byte
