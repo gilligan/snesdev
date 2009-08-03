@@ -21,7 +21,7 @@
 
     oam_data:
             .repeat 128
-            .byte 0,220,0,0
+            .byte 0,-32,0,0
             .endrepeat
 
             .repeat 32
@@ -107,10 +107,51 @@ nmi:
         .ifdef SWC
 
         jsr process_joypads
-        lda joy1_held
-        beq :+
-                jsr __swc_return_to_bios
-        :
+
+
+        lda joy1_held+1
+
+        cmp BUTTON_RIGHT
+        beq move_right
+
+        cmp BUTTON_LEFT
+        beq move_left
+
+        cmp BUTTON_UP
+        beq move_up
+
+        cmp BUTTON_DOWN
+        beq move_down
+
+        jmp control_done
+
+move_right:
+        lda oam_data+OAM_XPOS
+        inc
+        sta oam_data+OAM_XPOS
+        jmp control_done
+
+move_left:
+        lda oam_data+OAM_XPOS
+        dec
+        sta oam_data+OAM_XPOS
+        jmp control_done
+
+move_up:
+        lda oam_data+OAM_YPOS
+        dec
+        sta oam_data+OAM_YPOS
+        jmp control_done
+
+move_down:
+        lda oam_data+OAM_YPOS
+        inc
+        sta oam_data+OAM_YPOS
+
+control_done:
+
+
+        CALL(g_dma_tag_0,oam_dma)
 
         .endif
 
