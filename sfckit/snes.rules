@@ -6,13 +6,12 @@ UCON=ucon64
 SMCONV=smconv
 RM=rm -rf
 
-ASFLAGS=--auto-import --cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib -l $(EXTRA)
+ASFLAGS=--auto-import --cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib -l $(EXTRA) -DHIROM
 LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg -vm --mapfile $(TARGET).map
 
 EMU=zsnesd
 EMUARGS=-d
-
-OBJS= $(SRC:.S=.o)
+OBJS = $(filter-out $(SRC), $(SRC:.S=.o) $(SRC:.asm=.o) )
 
 build_includes=$(foreach file,$(shell cat $1 |  grep "^.include" | sed -e 's/.include\ "\(.*\)"/\1/'),-imacros $(file))
 

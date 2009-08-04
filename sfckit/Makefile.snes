@@ -15,6 +15,7 @@ libs:
 	@make -C $(SFCKIT)/lib
 
 $(TARGET).swc: $(OBJS) libs
+	echo $(OBJS)
 	@echo "LD      ("$?")"
 	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
 	@echo "CONVERT ("$@")"
@@ -23,4 +24,4 @@ $(TARGET).swc: $(OBJS) libs
 	@rm $(TARGET).bak >/dev/null
 
 clean:
-	-rm -rf $(TARGET) *.o *.swc .cpp_$(TARGET).* >/dev/null
+	-rm -rf $(TARGET) $(TARGET).map *.o *.swc .cpp_$(TARGET).* >/dev/null
