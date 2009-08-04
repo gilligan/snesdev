@@ -3,6 +3,7 @@ AS=ca65
 LD=ld65
 DISASM=sfcdis
 UCON=ucon64
+SMCONV=smconv
 RM=rm -rf
 
 ASFLAGS=--auto-import --cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib -l $(EXTRA)

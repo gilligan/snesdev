@@ -230,7 +230,6 @@ __string:
         .asciiz str
         : 
         process_arguments __string,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8
-        pha
         jsr printf
 .endmacro
 
@@ -241,8 +240,8 @@ __string:
         .asciiz str
         :
         pea __string
-        pha
         jsr puts
+        plx
 .endmacro
 
 .define OAM_SIZE 544

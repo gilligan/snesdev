@@ -61,6 +61,17 @@ histart:
 	cpx	#2115h			;
 	bne	:-			;
 
+        lda #255                        ; set Y-SCROLL to 255
+        sta BG1VOFS                     ; so that first char line
+        stz BG1VOFS                     ; is visible.
+        sta BG2VOFS                     ;
+        stz BG2VOFS                     ;
+        sta BG3VOFS                     ;
+        stz BG3VOFS                     ;
+        sta BG4VOFS                     ;
+        stz BG4VOFS                     ;
+
+
 	lda	#80h			; Initialize VRAM transfer mode to word-access, increment by 1
 	sta	2115h			;
 
