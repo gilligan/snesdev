@@ -316,7 +316,14 @@ NMI_ON     = (1<<7)
 
 
 .define MAP_SIZE $800
-
+.macro DEF_SOUND _rate, _pan, _vol, _src, _srcend
+        .byte _rate
+        .byte _pan
+        .byte _vol
+        .word (_srcend-_src)/9
+        .word .loword(_src)
+        .byte ^_src
+.endmacro
 
 .ifdef CC_PRE_PROCESS
 
