@@ -1,27 +1,51 @@
+include $(SFCKIT)/config.mak
 include $(SFCKIT)/snes.rules
 
-all: $(TARGET).swc
 
-xfer: $(TARGET).swc
-	ucon64 --port=$(SWC_PARPORT) --xswc $(TARGET).swc
+all: $(TARGET)
 
-disasm: clean $(TARGET).swc
-	$(DISASM) -reset -skip $(TARGET).swc > $(TARGET).lst
 
-emu: $(TARGET).swc
+#
+# transfer binary to hardware
+#
+xfer: $(TARGET)
+ifdef USE_SWC
+	@ucon64 -q --xswc $(basename $(TARGET)).swc
+endif
+ifdef USE_QD16
+	ucon64 -q --xquickdev16 $(basename $(TARGET)).swc
+ifdef USE_QD16_IPS
+	@cp $(basename $(TARGET)).bin $(QDIPS_ROM_FILE)
+endif
+endif
+
+update: $(TARGET)
+	@ucon64 --mki=$(QDIPS_ROM_FILE) $(basename $(TARGET)).bin >/dev/null
+	if test -f $(basename $(TARGET)).ips ; then qdips -h $(basename $(TARGET)).ips && cp $(basename $(TARGET)).bin $(QDIPS_ROM_FILE) ; fi
+	-@rm -rf $(basename $(TARGET)).ips >/dev/null
+
+#
+# create disassembly
+#
+disasm: clean $(TARGET).$(OUTPUT_FORMAT)
+	$(DISASM) -reset $(TARGET) > $(TARGET).lst
+
+emu: $(TARGET).$(OUTPUT_FORMAT)
 	$(EMU) $(EMUARGS) $(TARGET).swc
 
 libs:
 	@make -C $(SFCKIT)/lib
 
-$(TARGET).swc: $(OBJS) libs
-	echo $(OBJS)
+$(TARGET): $(OBJS) libs
 	@echo "LD      ("$?")"
 	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
+	@$(UCON) -q --nbak --chk $@ 1>/dev/null
 	@echo "CONVERT ("$@")"
-	@$(UCON) -q --chk --swc $@ 1>/dev/null
-	@$(UCON) --poke=2:3e $@ 1>/dev/null
-	@rm $(TARGET).bak >/dev/null
+	@$(UCON) -q --nbak --swc $@ 1>/dev/null
+ifdef $(SWC_BIOS_MODE)
+	    @$(UCON) --poke=2:3e $@ 1>/dev/null
+endif
+
 
 clean:
-	-rm -rf $(TARGET) $(TARGET).map *.o *.swc .cpp_$(TARGET).* >/dev/null
+	-rm -rf $(TARGET) $(basename $(TARGET)).map *.o *.swc .cpp_$(basename $(TARGET)).* >/dev/null

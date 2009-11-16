@@ -82,7 +82,7 @@ main:
 
         ldx #$2000+(2*32*2)
         stx VMADDL
-        PUTS("hello:bg3")
+        CALL(printf,str_hello)
 
         ;
         ; config & enable display
@@ -95,6 +95,10 @@ main:
         lda #$0f
         sta INIDISP
 
+        lda #$01
+        ldx #$02
+        ldy #$03
+
         ;
         ; enable NMI/joypad reading
         ;
@@ -104,7 +108,6 @@ main:
         cli
 
 main_loop: 
-
         jmp main_loop
 
 quit:
@@ -121,7 +124,6 @@ nmi:
         phx
         phy
         phd
-
 
         .ifdef SWC
 
@@ -155,12 +157,8 @@ DMA_TRANSFER_TAG(cgdata_dma,0,$22,colors,^colors,colors_end-colors)
 ; graphics data 
 ;
 
-hello_world1:
-        .asciiz "SFCKIT: HELLO WORLD1!"
-hello_world2:
-        .asciiz "SFCKIT: HELLO WORLD2!"
-hello_world3:
-        .asciiz "SFCKIT: HELLO WORLD3!"
+str_hello:
+        .asciiz "SFCKIT: HELLO WORLD!"
 
 colors:
         .byte $00,$00
@@ -177,7 +175,6 @@ debug_colors:
         .byte $ff,$7f
         .byte $00,$00
         .byte $ff,$7f
-
 
 font1: .incbin "font4bpp.bin"
 font_end1:

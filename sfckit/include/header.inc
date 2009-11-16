@@ -70,7 +70,7 @@ DEST_OTHERZ		=14H
 .byte	"SNESKIT              "	; C0 - game title
 .byte	MODE_21_FAST	      ;	; D5 - map mode
 .byte	CART_ROM		; D6 - cartridge type (ROM only)
-.byte	00h			; D7 - ROM size (set with sneschk)
+.byte	08h			; D7 - ROM size (set with sneschk)
 .byte	XRAM_NONE		; D8 - RAM size (no ram)
 .byte	DEST_USA_CANADA		; D9 - destination code (usa/canada) (NTSC)
 .byte	33h			; DA - fixed byte
