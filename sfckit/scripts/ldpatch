@@ -1,0 +1,54 @@
+#!/usr/bin/python
+
+import sys
+import os
+import fileinput
+import re
+
+segmentsString=[]
+banksString=[]
+banks=[]
+
+def create_link_file(default_config):
+    for line in fileinput.input(default_config):
+        if '#__INSERT_ROM_BANKS__' in line:
+            print ''.join(banksString)
+        elif '#__INSERT_SEGMENTS__' in line:
+            print ''.join(segmentsString)
+        else:
+            print line,
+
+
+
+def parse(file):
+    for line in fileinput.input(file):
+        if not line.strip():
+            continue
+        if re.compile('^#').search(line) is not None:
+            continue
+        else:
+            section,bank = line.strip().split(':')
+            if bank not in banks:
+                banksString.append("\tROM%d:start=$%x,size=$10000,fill=yes;\n" % (int(bank),(0xc0+int(bank))<<16))
+                banks.append(bank)
+            segmentsString.append("\t%s:load=ROM%s,type=ro;\n" % (section,bank))
+
+
+def main():
+    if len(sys.argv) < 2:
+        print '''Usage: ldfoo.py [layout] [config]
+
+        layout: local rom configuration
+        config: default rom configuration
+
+        '''
+        sys.exit(0)
+
+    file = sys.argv[1]
+    default = sys.argv[2]
+
+    parse(file)
+    create_link_file(default)
+
+if __name__ == '__main__':
+    main()
