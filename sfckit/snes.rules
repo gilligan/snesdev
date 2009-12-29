@@ -7,7 +7,7 @@ SMCONV=smconv
 RM=rm -rf
 
 ASFLAGS=--auto-import --cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib -l $(EXTRA) -DHIROM
-LDFLAGS=-C $(SFCKIT)/include/$(OUTPUT).cfg -vm --mapfile $(basename $(TARGET)).map
+LDFLAGS=-C $(basename $(TARGET)).cfg -vm --mapfile $(basename $(TARGET)).map
 
 
 EMU=zsnesd
@@ -24,3 +24,14 @@ build_includes=$(foreach file,$(shell cat $1 |  grep "^.include" | sed -e 's/.in
 %.o : %.asm
 	@echo "ASM     ("$?")"
 	$(AS) $(ASFLAGS) $? -o $@
+
+%.ld : %.asm
+	@echo Note: creating empty link file ...
+	@touch $@
+
+%.ld : %.S
+	@echo Note: creating empty link file ...
+	@touch $@
+
+%.cfg : %.ld
+	$(SFCKIT)/scripts/ldpatch $? $(SFCKIT)/include/default.cfg $@

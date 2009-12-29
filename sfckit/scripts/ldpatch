@@ -9,18 +9,24 @@ segmentsString=[]
 banksString=[]
 banks=[]
 
-def create_link_file(default_config):
+def create_link_file(default_config,output):
+    f = open(output,'w')
     for line in fileinput.input(default_config):
         if '#__INSERT_ROM_BANKS__' in line:
-            print ''.join(banksString)
+            print >>f,''.join(banksString)
         elif '#__INSERT_SEGMENTS__' in line:
-            print ''.join(segmentsString)
+            print >>f,''.join(segmentsString)
         else:
-            print line,
+            print >>f,line,
 
 
 
 def parse(file):
+
+    # bank 1 is already in the default config
+    # so we do not want it to get defined twice
+    banks.append("1")
+
     for line in fileinput.input(file):
         if not line.strip():
             continue
@@ -35,20 +41,22 @@ def parse(file):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print '''Usage: ldfoo.py [layout] [config]
+    if len(sys.argv) < 3:
+        print '''Usage: ldfoo.py [layout] [config] [outupt]
 
         layout: local rom configuration
         config: default rom configuration
+        output: output file
 
         '''
         sys.exit(0)
 
     file = sys.argv[1]
     default = sys.argv[2]
+    output = sys.argv[3]
 
     parse(file)
-    create_link_file(default)
+    create_link_file(default,output)
 
 if __name__ == '__main__':
     main()
