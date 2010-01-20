@@ -5,6 +5,7 @@ DISASM=sfcdis
 UCON=ucon64
 SMCONV=smconv
 RM=rm -rf
+CP=cp
 
 ASFLAGS=--auto-import --cpu 65816 -I$(SFCKIT)/include -I$(SFCKIT)/lib -l $(EXTRA) -DHIROM
 LDFLAGS=-C $(basename $(TARGET)).cfg -vm --mapfile $(basename $(TARGET)).map

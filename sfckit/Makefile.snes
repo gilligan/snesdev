@@ -39,6 +39,7 @@ libs:
 $(TARGET): $(basename $(TARGET)).cfg $(OBJS) libs
 	@echo "LD      ("$?")"
 	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
+	@$(CP) $@ $(basename $(TARGET)).bin
 	@$(UCON) -q --nbak --chk $@ 1>/dev/null
 	@echo "CONVERT ("$@")"
 	@$(UCON) -q --nbak --swc $@ 1>/dev/null
@@ -48,4 +49,4 @@ endif
 
 
 clean:
-	-rm -rf $(TARGET) $(basename $(TARGET)).map $(basename $(TARGET)).cfg *.o *.swc .cpp_$(basename $(TARGET)).* >/dev/null
+	-rm -rf $(TARGET) $(basename $(TARGET)).bin $(basename $(TARGET)).map $(basename $(TARGET)).cfg *.o *.swc .cpp_$(basename $(TARGET)).* >/dev/null
