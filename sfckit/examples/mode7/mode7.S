@@ -1,6 +1,8 @@
-.include "header.inc"
 .include "regs.inc"
 .include "std.inc"
+.include "sincos.inc"
+
+.include "header.inc"
 
 .global main
 .global mem_pool
@@ -15,7 +17,13 @@
 
 .SEGMENT "BSS"
 
-        mem_pool:   .res 64  
+        __M7_ANGLE: .res 2
+        __M7_SX:    .res 2
+        __M7_SY:    .res 2
+        __M7_A:     .res 2
+        __M7_B:     .res 2
+        __M7_C:     .res 2
+        __M7_D:     .res 2
 
 .SEGMENT "HRAM" : FAR
 .SEGMENT "HRAM2" : FAR
@@ -66,22 +74,16 @@ main:
         ; config & enable display
         ;
 
+        ldx #$400
+        stx __M7_SX
+        stx __M7_SY
 
-        lda #$1
-        sta M7A
-        lda #$2
-        sta M7A
-        lda #$02
-        stz M7D
-        sta M7D
-
-        lda #256/2
+        lda #256/2  ; set center-x
         sta M7X
         stz M7X
-        lda #224/2
+        lda #224/2  ; set center-y
         sta M7Y
         sty M7Y
-
 
         stz M7SEL
         lda #$07
@@ -118,6 +120,106 @@ nmi:
         phy
         phd
 
+        lda #$00
+        xba
+
+        ;
+        ; calc M7B == -sin(a) * (1/sx)
+        ;
+
+        lda __M7_ANGLE
+        inc a
+        sta __M7_ANGLE
+        tax             ; x=angle
+
+        lda __M7_SX     ;
+        sta M7A         ;
+        lda __M7_SX+1   ;
+        sta M7A         ; M7A=SX
+
+        lda sincos,x    ;
+        eor #$ff        ; 
+        inc a           ; 
+        sta M7B         ; M7B=-sin(angle)
+        ldy MPYM
+        sty __M7_B      ; __M7_B = -sin(angle)*SX
+
+        ;
+        ; calc M7C == sin(a) * (1/sy)
+        ;
+
+        lda __M7_SY
+        sta M7A
+        lda __M7_SY+1
+        sta M7A         ; M7A=SY
+
+        lda sincos,x
+        sta M7B
+        ldy MPYM
+        sty __M7_C     ; __M7_B = sin(angle)*SY
+
+        ;
+        ; get cos index
+        ; cos(a)=sin(a+64)
+
+        lda #$00
+        xba
+        txa
+        clc
+        adc #64
+        tax           ; x = cos(angle)
+
+        ;
+        ; calc M7A == cos(a) * (1/sx)
+        ;
+
+        lda __M7_SX
+        sta M7A
+        lda __M7_SX+1
+        sta M7A
+        lda sincos,x
+        sta M7B
+        ldy MPYM
+        sty __M7_A  ; __M7_A = SX*cos(angle)
+
+
+        ;
+        ; calc M7D == cos(a) * (1/sy)
+        ;
+
+        lda __M7_SY
+        sta M7A
+        lda __M7_SY+1
+        sta M7A
+        lda sincos,x
+        sta M7B
+        ldy MPYM
+        sty __M7_D
+
+	
+        ;
+        ; store parameters
+        ;
+
+	lda __M7_A
+	sta M7A
+	lda __M7_A+1
+	sta M7A
+	
+	lda __M7_B
+	sta M7B
+	lda __M7_B+1
+	sta M7B
+	
+	lda __M7_C
+	sta M7C
+	lda __M7_C+1
+	sta M7C
+	
+	lda __M7_D
+	sta M7D
+	lda __M7_D+1
+	sta M7D
 
         .ifdef SWC
 
@@ -508,6 +610,8 @@ sin_tab:
 DMA_TRANSFER_TAG(cgdata_dma,0,$22,.loword(cgdata),^cgdata,cgdata_end-cgdata)
 DMA_TRANSFER_TAG(map_dma,0,$18,.loword(screen_map),^screen_map,screen_map_end-screen_map)
 DMA_TRANSFER_TAG(char_dma,0,$19,.loword(screen_tiles),^screen_tiles,screen_tiles_end-screen_tiles)
+
+
 ;
 ; graphics data 
 ;

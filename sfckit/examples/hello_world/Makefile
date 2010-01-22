@@ -1,4 +1,4 @@
-TARGET=hello.bin
+TARGET=hello.swc
 EXTRA=-DSWC
 SRC=hello.S
 LIB=init joy dma video io swc debug
