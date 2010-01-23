@@ -21,6 +21,47 @@
 
 .define tag ARG_1
 
+; h_dma_tag_0( dma_tag* tag)
+;
+; transfers data according to info pointed to by [tag] using
+; DMA channel 0
+;
+.proc h_dma_tag_0
+
+        PROC_PROLOGUE
+
+        ldy #$00
+        lda (tag),y  
+        sta $4300   ; set dma mode
+        iny
+
+        lda (tag),y
+        sta $4301   ; set dest register
+        iny
+
+        lda (tag),y
+        sta $4302   ; set source addr (low)
+        iny
+        lda (tag),y
+        sta $4303   ; set source addr (high)
+        iny
+        lda (tag),y
+        sta $4304   ; set source bank
+        iny
+
+        lda (tag),y
+        sta $4305   ; set transfer length (low)
+        iny
+        lda (tag),y
+        sta $4306   ; set transfer length (high)
+
+        lda #1
+        sta $420c   ; start transfer
+
+        PROC_EPILOGUE
+
+.endproc
+
 ; g_dma_tag_0( dma_tag* tag)
 ;
 ; transfers data according to info pointed to by [tag] using
@@ -361,11 +402,6 @@
 .define len      ARG_4
 
         PROC_PROLOGUE
-
-        ldx src_bank
-        ldx src_ofs
-        ldx dst
-        ldx len
 
         ldx src_ofs
         stx $4302          ; set source address
