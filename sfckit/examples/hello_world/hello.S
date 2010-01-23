@@ -39,9 +39,9 @@ main:
         ; set BG properties
         ;
 
-        ldx BG1_CHR_ADDR($0000)
+        ldx #BG1_CHR_ADDR($0000)
         stx BG12NBA
-        ldx BG3_CHR_ADDR($3000)
+        ldx #BG3_CHR_ADDR($3000)
         stx BG34NBA
 
         ldx BG_MAP_ADDR($1000)

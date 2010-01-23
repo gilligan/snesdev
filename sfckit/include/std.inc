@@ -347,12 +347,12 @@ NMI_ON     = (1<<7)
 #define BG_SIZE_32X64 2
 #define BG_SIZE_64X64 3
 ; BG12NBA
-#define BG1_CHR_ADDR(addr) #(addr>>12)
-#define BG2_CHR_ADDR(addr) #(addr>>8)
+#define BG1_CHR_ADDR(addr) (addr>>12)
+#define BG2_CHR_ADDR(addr) (addr>>8)
 
 ; BG34NBA
-#define BG3_CHR_ADDR(addr) #(addr>>12)
-#define BG4_CHR_ADDR(addr) #(addr>>8)
+#define BG3_CHR_ADDR(addr) (addr>>12)
+#define BG4_CHR_ADDR(addr) (addr>>8)
 
 
 .endif
