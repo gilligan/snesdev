@@ -168,7 +168,7 @@
 ; byte: default PITCH (1..6) (hz = PITCH * 2000)
 ; byte: default PANNING (0..15)
 ; byte: default VOLUME (0..15)
-; word: number of BRR chunks (BYTELEN/9) (max 4kilobytes??)
+; word: number of BRR chunks (BYTELEN/9) (max 4kilobytes)
 ; word: address of BRR data
 ; byte: bank of BRR data
 ;*************************************************************************
