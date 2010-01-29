@@ -328,6 +328,7 @@ NMI_ON     = (1<<7)
 .ifdef CC_PRE_PROCESS
 
 #define DMA_TRANSFER_TAG(name,ctr,dst,src,bnk,len) name: build_dma_tag ctr,dst,src,bnk,len
+#define AUTO_DMA_TRANSFER_TAG(src,ctr,dst) src##_dma: build_dma_tag ctr,dst,.loword(src),^src,src##_end-src
 #define CALL(fptr, ...) call fptr, ## __VA_ARGS__ 
 #define FCALL(fptr, ...) fcall fptr, ## __VA_ARGS__
 #define PRINTF(str, ...) _printf str, ## __VA_ARGS__

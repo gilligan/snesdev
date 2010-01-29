@@ -1,0 +1,138 @@
+.include "header.inc"
+.include "regs.inc"
+.include "std.inc"
+
+.global main
+.global mem_pool
+.global DEBUG_FONT_DMA,brk_info,debug_colors
+
+
+.SEGMENT "ZEROPAGE"
+
+        ; careful with zeropage!
+        ; it is used to access arguments
+        ; on stack in subroutines !
+
+.SEGMENT "BSS"
+
+        mem_pool:   .res 64  
+        scroll_x:   .res 1
+
+.SEGMENT "HRAM" : FAR
+.SEGMENT "HRAM2" : FAR
+.SEGMENT "HDATA" : FAR
+.SEGMENT "XCODE"
+
+.SEGMENT "CODE"
+
+main:
+        .a8
+        .i16
+        .smart
+
+
+        ; 
+        ; set BG properties
+        ;
+
+        ldx BG_MAP_ADDR($0000)
+        stx BG1SC
+        ldx BG_MAP_ADDR($800)
+        stx BG2SC
+        ldx #(BG1_CHR_ADDR($1000) | BG2_CHR_ADDR($4000))
+        stx BG12NBA
+
+        ;
+        ; copy font & cgram data
+        ;
+
+        ldx #$1000
+        stx VMADDL
+        CALL(g_dma_tag_2,bg_even_tiles_dma)
+
+        ldx #$4000
+        stx VMADDL
+        CALL(g_dma_tag_2,bg_odd_tiles_dma)
+
+        ldx #$0000
+        stx VMADDL
+        CALL(g_dma_tag_2,bg_even_map_dma)
+
+        ldx #$800
+        stx VMADDL
+        CALL(g_dma_tag_2,bg_odd_map_dma)
+
+        lda #$00
+        sta $2121
+        CALL(g_dma_tag_2,bg_even_pal_dma)
+
+
+        ;
+        ; config & enable display
+        ;
+
+        lda #(1<<3)
+        sta SETINI
+
+
+        lda #$01
+        sta BGMODE
+
+        lda #(1<<1)               ;
+        sta TM                    ; BG2 = main screen
+
+        lda #(1<<0)               ;
+        sta TS                    ; BG1 = sub screen
+
+        lda #$0f
+        sta INIDISP
+
+        ;
+        ; enable NMI/joypad reading
+        ;
+
+        lda #$81
+        sta $4200
+        cli
+
+main_loop: 
+        jmp main_loop
+
+quit:
+
+
+brk_handler:
+        bra brk_handler
+
+
+nmi:
+
+        phb
+        pha
+        phx
+        phy
+        phd
+
+        pld
+        ply
+        plx
+        pla
+        plb
+
+        rti
+
+
+;
+; screen setup and dma transfers
+;
+
+AUTO_DMA_TRANSFER_TAG(bg_even_tiles,1,$18)
+AUTO_DMA_TRANSFER_TAG(bg_odd_tiles,1,$18)
+AUTO_DMA_TRANSFER_TAG(bg_even_map,1,$18)
+AUTO_DMA_TRANSFER_TAG(bg_odd_map,1,$18)
+AUTO_DMA_TRANSFER_TAG(bg_even_pal,0,$22)
+
+.SEGMENT "GRAPHICS"
+
+.include "bg_odd.gfx"
+.include "bg_even.gfx"
