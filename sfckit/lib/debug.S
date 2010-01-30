@@ -35,7 +35,7 @@
         lda #$8f
         sta INIDISP
 
-        ldx BG1_CHR_ADDR($0000)
+        ldx #BG1_CHR_ADDR($0000)
         stx BG12NBA
         ldx BG_MAP_ADDR($1000)
         stx BG1SC
