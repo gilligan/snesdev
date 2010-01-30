@@ -50,7 +50,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
         for ( int i=0; i<64; i++ )
         {
             if ( i%8 == 0 )
-                os << endl << ".db ";
+                os << endl << ".byte ";
             else 
                 os << ", ";
 
@@ -102,7 +102,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=0; plane<2; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -125,7 +125,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=0; plane<2; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -140,7 +140,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=2; plane<4; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -164,7 +164,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=0; plane<2; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -179,7 +179,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=2; plane<4; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -194,7 +194,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=4; plane<6; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
@@ -209,7 +209,7 @@ QTextStream & Tile::operator<< ( QTextStream & os )
             for ( int plane=6; plane<8; plane++ )
             {
                 if ( i%8 == 0 )
-                    os << endl << ".db ";
+                    os << endl << ".byte ";
                 else if ( i!=0 )
                     os << ", ";
 
