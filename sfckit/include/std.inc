@@ -171,6 +171,12 @@ done:
         rts
 .endmacro
 
+.define DMA_CTRL 0
+.define DMA_DST_REG 1
+.define DMA_SRC_OFS 2
+.define DMA_SRC_BNK 3
+.define DMA_LEN 5
+
 .macro build_dma_tag control,dest,src_ofs,src_bank,len
         .byte control
         .byte dest
