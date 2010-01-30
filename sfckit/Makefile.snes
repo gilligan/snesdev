@@ -49,4 +49,4 @@ endif
 
 
 clean:
-	-rm -rf $(TARGET) $(basename $(TARGET)).bin $(basename $(TARGET)).map $(basename $(TARGET)).cfg *.o *.swc .cpp_$(basename $(TARGET)).* >/dev/null
+	-rm -rf .cpp* .rom $(TARGET) *.lst $(basename $(TARGET)).bin $(basename $(TARGET)).map $(basename $(TARGET)).cfg *.o *.swc .cpp_$(basename $(TARGET)).* >/dev/null
