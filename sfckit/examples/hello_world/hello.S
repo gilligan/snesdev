@@ -4,12 +4,6 @@
 
 .global main
 .global mem_pool
-.global DEBUG_FONT_DMA,brk_info,debug_colors
-
-;
-; use font1 for debug output
-;
-DEBUG_FONT_DMA := font1_dma
 
 
 .SEGMENT "ZEROPAGE"
@@ -167,14 +161,7 @@ colors:
         .byte $ff,$7f
 colors_end:
 
-brk_info:
-        .asciiz "! %p:%P (A:%p X:%P Y:%P)"
 
-debug_colors:
-        .byte $00,$00
-        .byte $ff,$7f
-        .byte $00,$00
-        .byte $ff,$7f
 
 font1: .incbin "font4bpp.bin"
 font_end1:

@@ -8,7 +8,7 @@
 .global brk_info
 
 .SEGMENT "BSS"
-
+mem_pool: .res 64
 .SEGMENT "CODE"
 
 .proc __debug_handler
@@ -32,6 +32,11 @@
         pla              ; db 
         sta mem_pool+3 
 
+        ldx mem_pool+1
+        dex
+        dex
+        stx mem_pool+1
+
         lda #$8f
         sta INIDISP
 
@@ -43,7 +48,7 @@
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,DEBUG_FONT_DMA)
+        CALL(g_dma_tag_2,debug_font_dma)
 
 
 
@@ -95,4 +100,14 @@ watch1_str:
 test_str:
 .asciiz "foo:%x%X"
 
+DMA_TRANSFER_TAG(debug_font_dma,1,$18,font1,^font1,font_end1-font1)
+font1: .incbin "font4bpp.bin"
+font_end1:
+debug_colors:
+        .byte $00,$00
+        .byte $ff,$7f
+        .byte $00,$00
+        .byte $ff,$7f
+brk_info:
+        .asciiz "! %p:%P (A:%p X:%P Y:%P)"
 

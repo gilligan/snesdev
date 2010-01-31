@@ -170,10 +170,10 @@ control_done:
 ; graphics data 
 ;
 DMA_TRANSFER_TAG(oam_dma,0,$04,.loword(oam_data),^oam_data,OAM_SIZE)
-DMA_TRANSFER_TAG(chr_dma,1,$18,char_data,^char_data,char_data_end-char_data)
+DMA_TRANSFER_TAG(chr_dma,1,$18,.loword(char_data),^char_data,char_data_end-char_data)
 
 char_data:
-.incbin "sprite.bin"
+.incbin "sprite.pic"
 char_data_end:
 
 sprite_pal:
