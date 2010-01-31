@@ -83,7 +83,7 @@ main:
         stz M7X
         lda #224/2  ; set center-y
         sta M7Y
-        sty M7Y
+        stz M7Y
 
         stz M7SEL
         lda #$07
@@ -103,6 +103,7 @@ main:
 
 main_loop: 
 
+        wai
 
         jmp main_loop
 
@@ -119,6 +120,7 @@ nmi:
         phx
         phy
         phd
+
 
         lda #$00
         xba
@@ -607,10 +609,10 @@ sin_tab:
 ;
 ; screen setup and dma transfers
 ;
+
 DMA_TRANSFER_TAG(cgdata_dma,0,$22,.loword(cgdata),^cgdata,cgdata_end-cgdata)
 DMA_TRANSFER_TAG(map_dma,0,$18,.loword(screen_map),^screen_map,screen_map_end-screen_map)
 DMA_TRANSFER_TAG(char_dma,0,$19,.loword(screen_tiles),^screen_tiles,screen_tiles_end-screen_tiles)
-
 
 ;
 ; graphics data 
