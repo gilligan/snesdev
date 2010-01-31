@@ -1,0 +1,12 @@
+SUBDIRS = color  color2  direct  hdma  hello_world  hires  mode7  s2  sound  sprites
+
+.PHONY:subdirs $(SUBDIRS)
+subdirs: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+clean:
+	for dir in $(SUBDIRS); do\
+	    $(MAKE) clean -C $$dir; \
+	done
