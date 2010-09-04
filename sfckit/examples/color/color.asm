@@ -30,18 +30,16 @@ main:
         .i16
         .smart
 
-        stz scroll_x
-
 
         ; 
         ; set BG properties
         ;
 
-        ldx BG_MAP_ADDR($0000)
+        ldx #($0000>>BG_MAP_SHIFT)
         stx BG1SC
-        ldx BG_MAP_ADDR($800)
+        ldx #($800>>BG_MAP_SHIFT)
         stx BG2SC
-        ldx #(BG1_CHR_ADDR($1000) | BG2_CHR_ADDR($4000))
+        ldx #($1000>>BG1_CHR_SHIFT|$4000>>BG2_CHR_SHIFT)
         stx BG12NBA
 
         ;
@@ -50,23 +48,23 @@ main:
 
         ldx #$1000
         stx VMADDL
-        CALL(g_dma_tag_2,text_char_dma)
+        call g_dma_tag_2,text_char_dma
 
         ldx #$4000
         stx VMADDL
-        CALL(g_dma_tag_2,box_char_dma)
+        call g_dma_tag_2,box_char_dma
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,text_map_dma)
+        call g_dma_tag_2,text_map_dma
 
         ldx #$800
         stx VMADDL
-        CALL(g_dma_tag_2,box_map_dma)
+        call g_dma_tag_2,box_map_dma
 
         lda #$00
         sta $2121
-        CALL(g_dma_tag_2,box_pal_dma)
+        call g_dma_tag_2,box_pal_dma
 
 
         ;
@@ -134,12 +132,12 @@ nmi:
 ;
 ; screen setup and dma transfers
 ;
-DMA_TRANSFER_TAG(box_char_dma,1,$18,box_tiles,^box_tiles,box_tiles_end-box_tiles)
-DMA_TRANSFER_TAG(box_map_dma,1,$18,box_map,^box_map,box_map_end-box_map)
-DMA_TRANSFER_TAG(box_pal_dma,0,$22,box_pal,^box_pal,box_pal_end-box_pal)
+box_char_dma: build_dma_tag  1,$18,box_tiles,^box_tiles,box_tiles_end-box_tiles
+box_map_dma:  build_dma_tag  1,$18,box_map,^box_map,box_map_end-box_map
+box_pal_dma:  build_dma_tag  0,$22,box_pal,^box_pal,box_pal_end-box_pal
 
-DMA_TRANSFER_TAG(text_char_dma,1,$18,text_tiles,^text_tiles,text_tiles_end-text_tiles)
-DMA_TRANSFER_TAG(text_map_dma,1,$18,text_map,^text_map,text_map_end-text_map)
+text_char_dma: build_dma_tag  1,$18,text_tiles,^text_tiles,text_tiles_end-text_tiles
+text_map_dma:  build_dma_tag  1,$18,text_map,^text_map,text_map_end-text_map
 
 ;
 ; graphics data 

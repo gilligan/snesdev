@@ -332,8 +332,11 @@ NMI_ON     = (1<<7)
 .endmacro
 
 ; BG12NBA
-.define BG1_CHR_ADDR(addr) (addr>>8)
+.define BG1_CHR_ADDR(addr) (addr>>12)
 .define BG2_CHR_ADDR(addr) (addr>>8)
+.define BG1_BG2_CHR_ADDR(bg1_addr,bg2_addr) (#bg1_addr>>12|#bg2_addr>>8)
+.define BG1_CHR_SHIFT 12
+.define BG2_CHR_SHIFT 8
 
 ; BG34NBA
 .define BG3_CHR_ADDR(addr) (addr>>12)
@@ -341,6 +344,7 @@ NMI_ON     = (1<<7)
 
 ; BG1SC,BG2SC,BG3SC,BG4SC
 .define BG_MAP_ADDR(addr) #(addr>>8)
+.define BG_MAP_SHIFT 8
 .define BG_SIZE_32X32 0
 .define BG_SIZE_64X32 1
 .define BG_SIZE_32X64 2
