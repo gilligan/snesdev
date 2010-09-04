@@ -38,9 +38,11 @@ main:
         ; set BG properties
         ;
 
-        ldx BG_MAP_ADDR($0000)
+        ;ldx BG_MAP_ADDR($0000)
+        ldx #($0000>>BG_MAP_SHIFT)
         stx BG1SC
-        ldx #(BG1_CHR_ADDR($1000) | BG2_CHR_ADDR($4000))
+        ;ldx #(BG1_CHR_ADDR($1000) | BG2_CHR_ADDR($4000))
+        ldx #($1000>>BG1_CHR_SHIFT | $4000>>BG2_CHR_SHIFT)
         stx BG12NBA
 
         ;
@@ -49,15 +51,15 @@ main:
 
         ldx #$1000
         stx VMADDL
-        CALL(g_dma_tag_2,text_char_dma)
+        call g_dma_tag_2,text_char_dma
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,text_map_dma)
+        call g_dma_tag_2,text_map_dma
 
         lda #$00
         sta $2121
-        CALL(g_dma_tag_2,text_pal_dma)
+        call g_dma_tag_2,text_pal_dma
 
         ;
         ; config & enable display
@@ -151,9 +153,9 @@ nmi:
 ;
 ; screen setup and dma transfers
 ;
-DMA_TRANSFER_TAG(text_char_dma,1,$18,text_tiles,^text_tiles,text_tiles_end-text_tiles)
-DMA_TRANSFER_TAG(text_map_dma,1,$18,text_map,^text_map,text_map_end-text_map)
-DMA_TRANSFER_TAG(text_pal_dma,0,$22,text_pal,^text_pal,text_pal_end-text_pal)
+text_char_dma: build_dma_tag 1,$18,text_tiles,^text_tiles,text_tiles_end-text_tiles
+text_map_dma:  build_dma_tag 1,$18,text_map,^text_map,text_map_end-text_map
+text_pal_dma:  build_dma_tag 0,$22,text_pal,^text_pal,text_pal_end-text_pal
 ;
 ; graphics data 
 ;
