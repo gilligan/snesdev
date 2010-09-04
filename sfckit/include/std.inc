@@ -239,7 +239,7 @@ __string:
         jsr printf
 .endmacro
 
-.macro _puts str
+.macro puts str
         .local __string
         jmp :+
 __string:
@@ -331,35 +331,39 @@ NMI_ON     = (1<<7)
         .byte ^_src
 .endmacro
 
+; BG12NBA
+.define BG1_CHR_ADDR(addr) (addr>>8)
+.define BG2_CHR_ADDR(addr) (addr>>8)
+
+; BG34NBA
+.define BG3_CHR_ADDR(addr) (addr>>12)
+.define BG4_CHR_ADDR(addr) (addr>>8)
+
+; BG1SC,BG2SC,BG3SC,BG4SC
+.define BG_MAP_ADDR(addr) #(addr>>8)
+.define BG_SIZE_32X32 0
+.define BG_SIZE_64X32 1
+.define BG_SIZE_32X64 2
+.define BG_SIZE_64X64 3
+
+.define SET_VRAM_ADDR(__addr) set_vram_addr __addr
+.define SET_OAM_ADDR(__addr) set_oam_addr __addr
+
+;.define DMA_TRANSFER_TAG(name,ctr,dst,src,bnk,len) name: build_dma_tag ctr,dst,src,bnk,len
+
 .ifdef CC_PRE_PROCESS
 
-#define DMA_TRANSFER_TAG(name,ctr,dst,src,bnk,len) name: build_dma_tag ctr,dst,src,bnk,len
 #define AUTO_DMA_TRANSFER_TAG(src,ctr,dst) src##_dma: build_dma_tag ctr,dst,.loword(src),^src,src##_end-src
 #define CALL(fptr, ...) call fptr, ## __VA_ARGS__ 
 #define FCALL(fptr, ...) fcall fptr, ## __VA_ARGS__
 #define PRINTF(str, ...) _printf str, ## __VA_ARGS__
-#define PUTS(str) _puts str
 
-#define SET_VRAM_ADDR(__addr) set_vram_addr __addr
-#define SET_OAM_ADDR(__addr) set_oam_addr __addr
 
 ; INIDISP
 #define FORCE_BLANK #$80
 #define FULL_BRIGHTNESS #$0F
 
-; BG1SC,BG2SC,BG3SC,BG4SC
-#define BG_MAP_ADDR(addr) #(addr>>8)
-#define BG_SIZE_32X32 0
-#define BG_SIZE_64X32 1
-#define BG_SIZE_32X64 2
-#define BG_SIZE_64X64 3
-; BG12NBA
-#define BG1_CHR_ADDR(addr) (addr>>12)
-#define BG2_CHR_ADDR(addr) (addr>>8)
 
-; BG34NBA
-#define BG3_CHR_ADDR(addr) (addr>>12)
-#define BG4_CHR_ADDR(addr) (addr>>8)
 
 
 .endif

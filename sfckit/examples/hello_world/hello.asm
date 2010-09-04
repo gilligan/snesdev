@@ -52,13 +52,13 @@ main:
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,font1_dma)
+        call g_dma_tag_2, font1_dma
         ldx #$3000
         stx VMADDL
-        CALL(g_dma_tag_2,font2_dma)
+        call g_dma_tag_2,font2_dma
         lda #$00
         sta $2121
-        CALL(g_dma_tag_2,cgdata_dma)
+        call g_dma_tag_2,cgdata_dma
 
 
         ;
@@ -68,15 +68,15 @@ main:
 
         ldx #$1000
         stx VMADDL
-        PUTS("hello:bg1")
+        puts "hello:bg1"
 
         ldx #$1800+(32*2)
         stx VMADDL
-        PUTS("hello:bg2")
+        puts "hello:bg2"
 
         ldx #$2000+(2*32*2)
         stx VMADDL
-        CALL(printf,str_hello)
+        call printf,str_hello
 
         ;
         ; config & enable display
@@ -143,9 +143,9 @@ nmi:
 ;
 ; screen setup and dma transfers
 ;
-DMA_TRANSFER_TAG(font1_dma,1,$18,font1,^font1,font_end1-font1)
-DMA_TRANSFER_TAG(font2_dma,1,$18,font2,^font2,font_end2-font2)
-DMA_TRANSFER_TAG(cgdata_dma,0,$22,colors,^colors,colors_end-colors)
+font1_dma: build_dma_tag 1,$18,font1,^font1,font_end1-font1
+font2_dma: build_dma_tag 1,$18,font2,^font2,font_end2-font2
+cgdata_dma: build_dma_tag 0,$22,colors,^colors,colors_end-colors
 
 ;
 ; graphics data 

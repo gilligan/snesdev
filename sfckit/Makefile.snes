@@ -41,8 +41,6 @@ $(TARGET): $(basename $(TARGET)).cfg $(OBJS) libs
 	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(foreach lib,$(LIB),$(SFCKIT)/lib/$(lib).o)
 	@$(CP) $@ $(basename $(TARGET)).bin
 	@$(UCON) -q --nbak --chk $@ 1>/dev/null
-	@echo "CONVERT ("$@")"
-	@$(UCON) -q --nbak --swc $@ 1>/dev/null
 ifdef $(SWC_BIOS_MODE)
 	    @$(UCON) --poke=2:3e $@ 1>/dev/null
 endif

@@ -19,8 +19,8 @@ build_includes=$(foreach file,$(shell cat $1 |  grep "^.include" | sed -e 's/.in
 
 %.o: %.S 
 	@echo "ASM     ("$?")"
-	cc -I. -I$(SFCKIT)/include -I$(SFCKIT)/lib -E -P $(call build_includes,$?) $? > .cpp_$?
-	$(AS) $(ASFLAGS) .cpp_$? -o $@
+#cc -I. -I$(SFCKIT)/include -I$(SFCKIT)/lib -E -P $(call build_includes,$?) $? > .cpp_$?
+	$(AS) $(ASFLAGS) $? -o $@
 
 %.o : %.asm
 	@echo "ASM     ("$?")"
