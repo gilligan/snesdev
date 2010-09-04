@@ -1,6 +1,5 @@
 .include "regs.inc"
 .include "std.inc"
-.include "sincos.inc"
 
 .include "header.inc"
 
@@ -48,19 +47,19 @@ main:
 
         lda #$00
         sta $2121
-        CALL(g_dma_tag_2,cgdata_dma)
+        call g_dma_tag_2,cgdata_dma
 
         lda #$00
         sta $2115
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,map_dma)
+        call g_dma_tag_2,map_dma
 
         lda #$80
         sta $2115
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,char_dma)
+        call g_dma_tag_2,char_dma
 
 
 
@@ -606,13 +605,16 @@ sin_tab:
     .byte 1
     .byte 0
     .byte 0
+
+sincos: .include "sincos.inc"
+
 ;
 ; screen setup and dma transfers
 ;
 
-DMA_TRANSFER_TAG(cgdata_dma,0,$22,.loword(cgdata),^cgdata,cgdata_end-cgdata)
-DMA_TRANSFER_TAG(map_dma,0,$18,.loword(screen_map),^screen_map,screen_map_end-screen_map)
-DMA_TRANSFER_TAG(char_dma,0,$19,.loword(screen_tiles),^screen_tiles,screen_tiles_end-screen_tiles)
+cgdata_dma: build_dma_tag 0,$22,.loword(cgdata),^cgdata,cgdata_end-cgdata
+map_dma: build_dma_tag 0,$18,.loword(screen_map),^screen_map,screen_map_end-screen_map
+char_dma: build_dma_tag 0,$19,.loword(screen_tiles),^screen_tiles,screen_tiles_end-screen_tiles
 
 ;
 ; graphics data 
