@@ -1,5 +1,5 @@
-TARGET=hires.swc
-SRC=hires.S
+TARGET=hires.sfc
+SRC=hires.asm
 LIB=init dma video io 
 
 

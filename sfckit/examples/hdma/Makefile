@@ -1,5 +1,5 @@
-TARGET=hdma.swc
-SRC=hdma.S
+TARGET=hdma.sfc
+SRC=hdma.asm
 LIB=init joy dma video io 
 
 

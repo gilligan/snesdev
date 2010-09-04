@@ -31,16 +31,16 @@ main:
         .i16
         .smart
 
-        stz scroll_x
-
 
         ; 
         ; set BG properties
         ;
 
-        ldx BG_MAP_ADDR($0000)
+        ;ldx BG_MAP_ADDR($0000)
+        ldx #($0000>>BG_MAP_SHIFT)
         stx BG1SC
-        ldx #BG1_CHR_ADDR($1000)
+        ;ldx #BG1_CHR_ADDR($1000)
+        ldx #($1000>>BG1_CHR_SHIFT)
         stx BG12NBA
 
         ;
@@ -49,15 +49,15 @@ main:
 
         ldx #$1000
         stx VMADDL
-        CALL(g_dma_tag_2,bg_char_dma)
+        call g_dma_tag_2,bg_char_dma
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,bg_map_dma)
+        call g_dma_tag_2,bg_map_dma
 
         lda #$00
         sta $2121
-        CALL(g_dma_tag_2,bg_pal_dma)
+        call g_dma_tag_2,bg_pal_dma
 
         ;
         ; config & enable display
@@ -127,9 +127,9 @@ nmi:
 ;
 ; screen setup and dma transfers
 ;
-DMA_TRANSFER_TAG(bg_char_dma,1,$18,bg_tiles,^bg_tiles,bg_tiles_end-bg_tiles)
-DMA_TRANSFER_TAG(bg_map_dma,1,$18,bg_map,^bg_map,bg_map_end-bg_map)
-DMA_TRANSFER_TAG(bg_pal_dma,0,$22,bg_pal,^bg_pal,bg_pal_end-bg_pal)
+bg_char_dma: build_dma_tag 1,$18,bg_tiles,^bg_tiles,bg_tiles_end-bg_tiles
+bg_map_dma:  build_dma_tag 1,$18,bg_map,^bg_map,bg_map_end-bg_map
+bg_pal_dma:  build_dma_tag 0,$22,bg_pal,^bg_pal,bg_pal_end-bg_pal
 
 
 hdma_table: 
