@@ -1,4 +1,4 @@
-SUBDIRS = color  color2  hdma  hello_world  hires  mode7  s2  sound  sprites
+SUBDIRS = color  color2  hdma  hello_world  hires  mode7  sprites
 
 .PHONY:subdirs $(SUBDIRS)
 subdirs: $(SUBDIRS)
