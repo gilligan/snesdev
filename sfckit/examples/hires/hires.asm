@@ -36,12 +36,10 @@ main:
         ;
 
         ;ldx BG_MAP_ADDR($0000)
-        ldx #($0000>>BG_MAP_SHIFT)
+        ldx #$0000
         stx BG1SC
-        ;ldx BG_MAP_ADDR($800)
-        ldx #($800>BG_MAP_SHIFT)
+        ldx #($800>>BG_MAP_SHIFT)
         stx BG2SC
-        ;ldx #(BG1_CHR_ADDR($1000) | BG2_CHR_ADDR($4000))
         ldx #($1000>>BG1_CHR_SHIFT | $4000>>BG2_CHR_SHIFT)
         stx BG12NBA
 
@@ -126,18 +124,13 @@ nmi:
 
 
 ;
-; screen setup and dma transfers
+; dma transfers
 ;
 
-;AUTO_DMA_TRANSFER_TAG(bg_even_tiles,1,$18)
-;AUTO_DMA_TRANSFER_TAG(bg_odd_tiles,1,$18)
-;AUTO_DMA_TRANSFER_TAG(bg_even_map,1,$18)
-;AUTO_DMA_TRANSFER_TAG(bg_odd_map,1,$18)
-;AUTO_DMA_TRANSFER_TAG(bg_even_pal,0,$22)
-bg_even_tiles_dma: build_dma_tag 1,$18,.loword(bg_even_tiles),^bg_even_tiles,bg_even_tiles_end-bg_even_tiles
-bg_odd_tiles_dma:  build_dma_tag 1,$18,.loword(bg_odd_tiles),^bg_odd_tiles,bg_odd_tiles_end-bg_odd_tiles
-bg_even_map_dma:   build_dma_tag 1,$18,.loword(bg_even_map),^bg_even_map,bg_even_map_end-bg_even_map
-bg_odd_map_dma:    build_dma_tag 1,$18,.loword(bg_odd_map),^bg_odd_map,bg_odd_map_end-bg_odd_map
+bg_even_tiles_dma: build_dma_tag 1,$18,.loword(bg_even_tiles),^bg_even_tiles,18592
+bg_odd_tiles_dma:  build_dma_tag 1,$18,.loword(bg_odd_tiles),^bg_odd_tiles,18624
+bg_even_map_dma:   build_dma_tag 1,$18,.loword(bg_even_map),^bg_even_map,1792
+bg_odd_map_dma:    build_dma_tag 1,$18,.loword(bg_odd_map),^bg_odd_map,1792
 bg_even_pal_dma:   build_dma_tag 0,$22,.loword(bg_even_pal),^bg_even_pal,bg_even_pal_end-bg_even_pal
 
 .SEGMENT "GRAPHICS"
