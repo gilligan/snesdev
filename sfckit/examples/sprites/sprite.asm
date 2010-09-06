@@ -49,7 +49,7 @@ main:
         ;
 
         SET_VRAM_ADDR($6000)
-        CALL(g_dma_tag_0,chr_dma)
+        call g_dma_tag_0,chr_dma
 
         load_pal sprite_pal, $80, 16
 
@@ -58,7 +58,7 @@ main:
         sta oam_data+OAM_YPOS
 
         SET_OAM_ADDR($0000)
-        CALL(g_dma_tag_0,oam_dma)
+        call g_dma_tag_0,oam_dma
 
 
         ;
@@ -104,7 +104,6 @@ nmi:
         phd
 
 
-        .ifdef SWC
 
         jsr process_joypads
 
@@ -151,9 +150,8 @@ move_down:
 control_done:
 
 
-        CALL(g_dma_tag_0,oam_dma)
+        call g_dma_tag_0,oam_dma
 
-        .endif
 
         lda $4210
 
@@ -169,8 +167,8 @@ control_done:
 ;
 ; graphics data 
 ;
-DMA_TRANSFER_TAG(oam_dma,0,$04,.loword(oam_data),^oam_data,OAM_SIZE)
-DMA_TRANSFER_TAG(chr_dma,1,$18,.loword(char_data),^char_data,char_data_end-char_data)
+oam_dma: build_dma_tag 0,$04,.loword(oam_data),^oam_data,OAM_SIZE
+chr_dma: build_dma_tag 1,$18,.loword(char_data),^char_data,char_data_end-char_data
 
 char_data:
 .incbin "sprite.pic"
