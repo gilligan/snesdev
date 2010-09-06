@@ -62,13 +62,6 @@ main:
         call g_dma_tag_2,char_dma
 
 
-
-
-        ;
-        ; print some text
-        ;
-
-
         ;
         ; config & enable display
         ;
