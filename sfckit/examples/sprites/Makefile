@@ -1,7 +1,7 @@
 TARGET=sprite.sfc
 EXTRA=-DSWC
 SRC=sprite.asm
-LIB=init joy dma video io swc
+LIB=init joy dma io swc
 OUTPUT=smc
 
 

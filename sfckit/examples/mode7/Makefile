@@ -1,8 +1,6 @@
 TARGET=mode7.sfc
-EXTRA=-DSWC
-SRC=mode7.S
-LIB=init joy dma video io swc
-OUTPUT=smc
+SRC=mode7.asm
+LIB=init joy dma io swc
 
 
 include ../../Makefile.snes

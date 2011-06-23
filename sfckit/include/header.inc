@@ -87,7 +87,7 @@ VEC_E6:	.word	brk_handler	; BRK
 VEC_E8:	.word	0		; ABORT
 VEC_EA:	.word	nmi		; NMI
 VEC_EC:	.word	0		; RESET
-VEC_EE:	.word	0		; IRQ
+VEC_EE:	.word   irq_handler	; IRQ
 ;----------------------------------------------------------------------
 ; emulation mode vectors
 ;----------------------------------------------------------------------

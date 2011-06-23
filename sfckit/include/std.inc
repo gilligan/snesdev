@@ -250,6 +250,28 @@ __string:
         plx
 .endmacro
 
+.macro s_puts str
+        .local __string
+        jmp :+
+__string:
+        .asciiz str
+        :
+        pea __string
+        jsr s_puts
+        plx
+.endmacro
+
+.macro s_putsl str
+        .local __string
+        jmp :+
+__string:
+        .asciiz str
+        :
+        pea __string
+        jsr s_putsl
+        plx
+.endmacro
+
 .define OAM_SIZE 544
 .define OAM_XPOS 0
 .define OAM_YPOS 1

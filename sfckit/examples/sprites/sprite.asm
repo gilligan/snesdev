@@ -92,6 +92,7 @@ quit:
 
 
 brk_handler:
+irq_handler:
         rti
 
 

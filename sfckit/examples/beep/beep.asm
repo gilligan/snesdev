@@ -237,6 +237,7 @@ spc_execute:
         rts
 
 brk_handler:
+irq_handler:
 nmi:
         rti
 

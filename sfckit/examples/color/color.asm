@@ -105,7 +105,8 @@ quit:
 
 brk_handler:
         bra brk_handler
-
+irq_handler:
+        bra irq_handler
 
 nmi:
 

@@ -48,7 +48,7 @@ mem_pool: .res 64
 
         ldx #$0000
         stx VMADDL
-        CALL(g_dma_tag_2,debug_font_dma)
+        call g_dma_tag_2, debug_font_dma
 
 
 
@@ -57,14 +57,14 @@ mem_pool: .res 64
         ;
         ldx #$1000+(32*2)
         stx VMADDL
-        CALL(printf,brk_info,mem_pool+3,mem_pool+1,mem_pool+4,mem_pool+5,mem_pool+7)
+        call printf, brk_info,mem_pool+3,mem_pool+1,mem_pool+4,mem_pool+5,mem_pool+7
 
         ;
         ; print first 64 bytes of stack
         ;
         ldx #$1000+(32*4)
         stx VMADDL
-        CALL(puts,stack_str)
+        call puts,stack_str
 
         ldx #$1000+(32*5)
         stx VMADDL
@@ -75,7 +75,7 @@ mem_pool: .res 64
 
         ldx #$1000+(32*10)
         stx VMADDL
-        CALL(printf,test_str,$12,$ee)
+        call printf, test_str,$12,$ee
 
         stz NMITIMEN
         lda #$01
@@ -100,7 +100,7 @@ watch1_str:
 test_str:
 .asciiz "foo:%x%X"
 
-DMA_TRANSFER_TAG(debug_font_dma,1,$18,font1,^font1,font_end1-font1)
+debug_font_dma: build_dma_tag 1,$18,font1,^font1,font_end1-font1
 font1: .incbin "font4bpp.bin"
 font_end1:
 debug_colors:

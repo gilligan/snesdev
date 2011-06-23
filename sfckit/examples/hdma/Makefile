@@ -1,6 +1,6 @@
 TARGET=hdma.sfc
 SRC=hdma.asm
-LIB=init joy dma video io 
+LIB=init joy dma io 
 
 
 include ../../Makefile.snes
