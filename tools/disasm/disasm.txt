@@ -1,0 +1,132 @@
+65816 SNES Disassembler   v2.0  (C)opyright 1994  by John Corey
+Released Midnight CST, March 10, 1994.
+
+Ok .. I'm finally releasing my SNES disassembler.  I wrote it for two
+reasons.  First, because DSFX for the PC was giving me too many problems,
+for instance, taking two bytes for a single byte command.  And second, so it
+could be ported to any platform (unix comes to mind).
+
+> Ok .. the next generation of this wonderful disassembler.  The lines or
+paragraphs that have the ">" symbol are new things I have added to the
+disassembler.  Most notably is the addition of loading a symbol file, and
+compatibility with Jeremy Gordon's awesome assembler.  Also, the source
+file has been getting really big (about 1000 lines of code), so I have
+split it up into several files.  Included is the Makefile to compile the
+disassembler (thanks Jeremy!).
+
+I take no responsibility for any damage this program causes to you, your
+computer, and any thing else around.  This archive may be spread around as
+long as none of the contents are modified.  If you have any problems,
+comments, or suggestions about this program, e-mail me on the internet at
+cujrc@uxa.ecn.bgu.edu. 
+
+Included in this archive are:
+> disasm.tar.gz -- C source code for this program.
+  disasm.doc    -- this file.
+  disasm.exe    -- executable for IBM and compatible computers.
+  disasm        -- executable for Amiga computers.
+
+> To compile it in a unix environment, just use "make disasm".
+
+Now the instructions.  Just running the program with the -help option will
+give you a help list of all the options.  Here it is:
+
+65816 SNES Disassembler   v2.0  (C)opyright 1994  by John Corey
+disasm [options] <filename>
+for help use: disasm -help
+  -skip     skip header (512 bytes)
+  -hirom    force HiRom disassembly
+  -nmi      begin disassembling at address in the NMI vector
+  -reset    begin disassembling at address in the RESET vector
+  -irq      begin disassembling at address in the IRQ vector
+  -bxxyyyy  begin  (default $008000)
+  -exxyyyy  end  (default $ffffff)
+              xx = bank number (in hex)
+              yyyy = address (in hex)
+  -t        stop disassembling at first RTS, RTL or RTI
+  -d        do NOT disassemble, convert block of code into dcb's.
+  -as       set accumulator size  (default 8)
+  -xs       set index size  (default 8)
+              s = 8 for 8 bit, s = 16 for 16 bit
+  -sym f    load up a symbol table.  f = filename
+  -q        quiet mode enable
+  -65816    disassemble with < and >'s
+  -cx       commenting level (default is 1)
+             x = 0 for no commenting, 1 for short comments, 2 for long comments
+
+For any of the options, you can use either the "-" or "/" preceeding them.
+Separate each option with a space (use -a -b -c .. not -abc).
+
+First, if the file has a header, or it is a hi-rom game, then you MUST put
+these two switches first(-skip and -h).  Unexpected results may occur if
+you do not obey this rule.
+
+Next there are the interrupt vector options (-nmi, -reset, and -irq).
+These will start the disassembling at the address pointed to by each of
+the corresponding interrupt vectors.  If these options are combined with
+the begin option (which they should not be), then the latter one on the
+command line will take precedence. 
+
+Then there are the begin and end options (-b and -e).  You must follow
+These with a 24 bit hexidecimal address (do not put a space after the "b"
+or "e").  This will be where the disassembler with begin and/or end its
+disassembling.  The defaults are to begin at $008000 (-b008000) and end at
+$ffffff (-effffff). 
+
+> You may also use a symbol to define the begin or end.  But you must 
+have declared the -sym file before the begin or end.  For example:
+disasm -sym file.s -bbegin -eend file.b.
+
+The -t option will make the disassembling stop when either a RTS, RTL, or
+RTI statement is encountered.  This is very useful for disassembling
+subroutines.  If this switch is combined with -e, the latter one on the
+command line will take precedence. 
+
+> Using the -d option, the disassmebler will output several DCB statements
+instead of disassembling.  It will use the defined (or default if not
+defined) begin and end values.  It makes the values from the begin value
+through the end value - 1.  So, if you wanted to convert 512 ($200) bytes
+beginning at $009000, use: disasm -b009000 -e009200 -d file.
+
+The -a and -x options will set the size of the accumulator and the
+indexes.  Their syntax is -a8, -a16, -x8, or -x16.  Obviously, the 8 and
+16 represent whether the register is to be 8 or 16 bits long when the
+disassembling starts.  The default for both of these is 8 bits.  The
+disassembler will adjust the size appropriately when the REP and SEP
+commands are encountered. 
+
+> To load up a symbol file use the -sym option.  Here you must put a space
+after the -sym, then the filename for the symbol file.  The file must be
+in the format: LABEL=$001122.  First the label name, then "=$", and
+finally the bank and address to assign to the label.
+
+> To put the disassembler into a quiet mode use the -q option.  This will
+suppress the address and byte listing for each line.  This is usefull to
+produce code that can be easily reassembled.
+
+> The -65816 option will produce code that is compatible with Jeremy
+Gordon's 65816 SNES Assembler.  To make code nearly 100% ready to
+reassemble, use: disasm -q -65816 -b008000 -e009000 file.  Of course you
+can also use any of the other options as well.
+
+The -c option is to choose the level of commenting the disassembler
+produces.  There are three levels.  Level 0 is for no commenting, level 1
+is for short comments, and level 2 is for long comments.  The default for
+this option is level 1.
+
+All of the above options are optional (of course).
+
+Finally, put the filename of the game or demo you wish to disassemble
+(this is required).  The program will send the output to the standard
+output (the monitor in most cases).  If you wish to capture the listing
+into a file, than just use the redirection symbol (>).  If you do not know
+how this symbol works, consult your user's manual for your operating
+system.
+
+That should be enough for you to use this disassembler.  Thanks to all
+those involved in helping me debug and test this program.
+
+Enjoy!
+
+John Corey
+cujrc@uxa.ecn.bgu.edu
