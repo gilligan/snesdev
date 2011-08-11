@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cartridge region="NTSC">
+    <rom>
+        <map mode="shadow" address="00-3f:8000-ffff"/>
+        <map mode="linear" address="40-7f:0000-ffff"/>
+        <map mode="shadow" address="80-bf:8000-ffff"/>
+        <map mode="linear" address="c0-ff:0000-ffff"/>
+    </rom>
+    <link program="sfcdebug" frequency="21477272">
+      <map address="00-3f:3800-38ff"/>
+      <map address="80-bf:3800-38ff"/>
+    </link>    
+</cartridge>
