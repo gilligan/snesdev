@@ -17,6 +17,8 @@
 .global printf
 .global s_puts
 .global s_putsl
+.global l_puts
+.global l_dump_mem
 .global __byte_to_ascii
 
 ;
@@ -221,6 +223,29 @@ zloop:
         
 .endproc
 
+; l_puts(u16* src)
+;
+; prints ascii characters at [src] up
+; to the first '\0' on chip-link output
+
+.proc l_puts
+
+        src = ARG_1
+        PROC_PROLOGUE
+
+        ldy #$0000
+puts_loop:
+        lda (src),y
+        beq puts_done
+        sta $3800
+        iny
+        jmp puts_loop
+puts_done:
+        stz $3802
+
+        PROC_EPILOGUE
+.endproc
+
 
 ; s_puts(u16* src)
 ;
@@ -290,6 +315,29 @@ puts_loop:
         iny
         jmp puts_loop
 str_end:
+
+        PROC_EPILOGUE
+
+.endproc
+
+
+.proc l_dump_mem
+
+        start_ofs = ARG_1
+        data_len  = ARG_2
+
+        PROC_PROLOGUE
+
+        ldy #$0000
+        :
+        lda (start_ofs),y
+        sta $3800
+        iny
+        cpy data_len
+        bne :-
+
+        lda #$01
+        sta $3802
 
         PROC_EPILOGUE
 

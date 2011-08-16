@@ -4,6 +4,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "linkregs.h"
+#include "util.h"
+
 extern "C" {
     void link_power();
     void link_reset();
@@ -14,21 +17,23 @@ extern "C" {
 
 void exec_cmd(uint8_t* buffer, int buffer_pos, uint8_t cmd);
 
+#define FMT_BUF_SIZE (8*sizeof(uintmax_t)+1)
+static char buf[FMT_BUF_SIZE];
+char *binary_fmt(uintmax_t x)
+{
+    char *s = buf + FMT_BUF_SIZE;
+    *--s = 0;
+    if (!x) *--s = '0';
+    for(; x; x/=2) *--s = '0' + x%2;
+    return s;
+}
+
+
 #define BUFFER_SIZE 32*1024
-
-/* register defines */
-#define REG_DATA_WR    0x3800
-#define REG_DATA_RD    0x3801
-#define REG_CMD        0x3802
-
-/* command defines */
-#define CMD_PRINTF     0x00
-#define CMD_HEXDUMP    0x01
-
 
 
 /*
- * initialize
+ * libsnes callback : power up
  */
 void link_power()
 {
@@ -37,7 +42,7 @@ void link_power()
 }
 
 /**
- * initialize
+ * libsnes callback : initialize
  */
 void link_reset() 
 {
@@ -45,7 +50,7 @@ void link_reset()
 }
 
 /**
- * does nothing right now
+ * Desc: libsnes callback : run
  */
 unsigned link_run() 
 {
@@ -53,7 +58,8 @@ unsigned link_run()
 }
 
 /**
- * write data to snes
+ * Desc: libsnes callback : read (snes<-chip)
+ * @return unused
  */
 uint8_t link_read(unsigned addr) 
 {
@@ -62,7 +68,10 @@ uint8_t link_read(unsigned addr)
 
 
 /**
- * receive data from snes
+ * Desc: libsnes callback : write (snes->chip)
+ * @arg addr address written to
+ * @arg data data written to 'address'
+ *
  */
 void link_write(unsigned addr, uint8_t data) 
 {
@@ -82,6 +91,10 @@ void link_write(unsigned addr, uint8_t data)
             memset(output_buffer, 0, BUFFER_SIZE);
             break;
 
+        case REG_PUTC:
+            printf("read byte : %2X\n",data);
+            break;
+
         default:
             printf("unknown register: %x",(addr & 0xffff));
     }
@@ -89,61 +102,38 @@ void link_write(unsigned addr, uint8_t data)
 
 
 
-static void hexdump(void *data, int size)
+
+void debug_crash(uint8_t* debug_data)
 {
-    /* dumps size bytes of *data to stdout. Looks like:
-     * [0000] 75 6E 6B 6E 6F 77 6E 20
-     *                  30 FF 00 00 00 00 39 00 unknown 0.....9.
-     * (in a single line of course)
-     */
+    uint8_t status_reg = debug_data[0];
+    uint16_t pc_reg = (debug_data[2]<<8) | debug_data[1];
+    uint8_t direct_bank = debug_data[3];
+    uint16_t reg_a = debug_data[4];
+    uint16_t reg_x = (debug_data[7]<<8) | debug_data[6];
+    uint16_t reg_y = (debug_data[9]<<8) | debug_data[8];
+    uint16_t reg_sp = (debug_data[11]<<8) | debug_data[10];
 
-    unsigned char *p = (unsigned char*)data;
-    unsigned char c;
-    int n;
-    char bytestr[4] = {0};
-    char addrstr[10] = {0};
-    char hexstr[ 16*3 + 5] = {0};
-    char charstr[16*1 + 5] = {0};
-    for(n=1;n<=size;n++) {
-        if (n%16 == 1) {
-            /* store address for this line */
-            snprintf(addrstr, sizeof(addrstr), "%.4x",
-               ((intptr_t)p-(intptr_t)data) );
-        }
-            
-        c = *p;
-        if (isalnum(c) == 0) {
-            c = '.';
-        }
+    /* print status register */
+    printf("DEBUG INFO:\n");
 
-        /* store hex str (for left side) */
-        snprintf(bytestr, sizeof(bytestr), "%02X ", *p);
-        strncat(hexstr, bytestr, sizeof(hexstr)-strlen(hexstr)-1);
+    printf("\tAddress: $%02X:%02X\n",direct_bank, pc_reg);
+    printf("\tStack:   $%04X\n",reg_sp);
 
-        /* store char str (for right side) */
-        snprintf(bytestr, sizeof(bytestr), "%c", c);
-        strncat(charstr, bytestr, sizeof(charstr)-strlen(charstr)-1);
-
-        if(n%16 == 0) { 
-            /* line completed */
-            printf("[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
-            hexstr[0] = 0;
-            charstr[0] = 0;
-        } else if(n%8 == 0) {
-            /* half line: add whitespaces */
-            strncat(hexstr, "  ", sizeof(hexstr)-strlen(hexstr)-1);
-            strncat(charstr, " ", sizeof(charstr)-strlen(charstr)-1);
-        }
-        p++; /* next byte */
-    }
-
-    if (strlen(hexstr) > 0) {
-        /* print rest of buffer if not empty */
-        printf("[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
-    }
+    printf("\tP: %s%s%s%s%s%s%s%s ",
+            ((status_reg&(1<<7))?"N":"n"),
+            ((status_reg&(1<<6))?"V":"v"),
+            ((status_reg&(1<<5))?"M":"m"),
+            ((status_reg&(1<<4))?"X":"x"),
+            ((status_reg&(1<<3))?"D":"d"),
+            ((status_reg&(1<<2))?"I":"i"),
+            ((status_reg&(1<<1))?"Z":"z"),
+            ((status_reg&(1<<0))?"C":"c"));
+    printf("($%2X)\n",status_reg);
+    printf("\tA: $%04X (%d)\n\tX: $%04X (%d)\n\tY: $%04X (%d)\n",
+            reg_a,reg_a,
+            reg_x,reg_x,
+            reg_y,reg_y);
 }
-
-
 
 
 /**
@@ -151,7 +141,6 @@ static void hexdump(void *data, int size)
  */
 void exec_cmd(uint8_t* buffer, int buffer_pos, uint8_t cmd)
 {
-    printf("command byte: %d\n",cmd);
     switch(cmd)
     {
         case CMD_PRINTF:
@@ -160,6 +149,10 @@ void exec_cmd(uint8_t* buffer, int buffer_pos, uint8_t cmd)
 
         case CMD_HEXDUMP:
             hexdump(buffer,buffer_pos);
+            break;
+
+        case CMD_CRASHDBG:
+            debug_crash(buffer);
             break;
 
         default:

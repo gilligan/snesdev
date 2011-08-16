@@ -1,9 +1,11 @@
 .include "header.inc"
 .include "regs.inc"
 .include "std.inc"
+.include "link.inc"
 
 .global main
 .global mem_pool
+
 
 
 .SEGMENT "ZEROPAGE"
@@ -16,6 +18,7 @@
 
         mem_pool:   .res 64  
 
+
 .SEGMENT "HRAM" : FAR
 .SEGMENT "HRAM2" : FAR
 .SEGMENT "HDATA" : FAR
@@ -23,11 +26,11 @@
 
 .SEGMENT "CODE"
 
+
 main:
         .a8
         .i16
         .smart
-
 
         ; 
         ; set BG properties
@@ -37,6 +40,7 @@ main:
         stx BG12NBA
         ldx #BG3_CHR_ADDR($3000)
         stx BG34NBA
+
 
         ldx BG_MAP_ADDR($1000)
         stx BG1SC
@@ -101,31 +105,62 @@ main:
         sta $4200
         cli
 
-main_loop: 
+
+        ;
+        ; test debug macro output
+        ;
+
+        lda #$22
+        ldx #$aab0
+        DEBUG
+        inc 
+        inx
+        DEBUG
+        ldy #$ffff
+        DEBUG
+
+        ;
+        ; test putc
+        ;
+        lda #$ff
+        sta $3803
+
+
 
         ;; print a string
         ;;
 
-        ldx #00
-send_string:        
-        lda string,x
-        sta $3800
-        inx
-        cpx #13
-        bne send_string
-        stz $3802
+        pea string
+        jsr l_puts
+        plx
+
+
+        ;; dump some memory
+        ;;
+
+        ldx #512
+        phx
+        ldx #$9938
+        phx
+        jsr l_dump_mem
+        plx
+        plx
+
+
+main_loop: 
+
 
         ;; hex dump some data
         ;; 
 
-        ldx #500
-hexdump:
-        lda $008000,x
-        sta $3800
-        dex
-        bne hexdump
-        lda #$01
-        sta $3802
+;        ldx #500
+;hexdump:
+;        lda $008000,x
+;        sta $3800
+;        dex
+;        bne hexdump
+;        lda #$01
+;        sta $3802
 
         jmp main_loop
 
@@ -134,11 +169,24 @@ quit:
 string:
         .byte "hello world",$0a,0
 
+        ;brk_handler = __link_debug_handler
 
 brk_handler:
+
+        link_dump_registers
+        link_tx_registers
+
+        lda register_data+debug_data::reg_a
+        ldx register_data+debug_data::reg_x
+        ldy register_data+debug_data::reg_y
+
+
+        rti
+
 irq_handler:
 
-        jmp __debug_handler
+        ;jmp __debug_handler
+        ;jmp __link_debug_handler
 
 nmi:
 

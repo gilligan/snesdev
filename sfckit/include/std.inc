@@ -171,6 +171,22 @@ done:
         rts
 .endmacro
 
+; push all regs
+;
+.macro phr
+        pha
+        phx
+        phy
+.endmacro
+
+; pull all regs
+;
+.macro plr
+        ply
+        plx
+        pla
+.endmacro
+
 .define DMA_CTRL 0
 .define DMA_DST_REG 1
 .define DMA_SRC_OFS 2
@@ -247,6 +263,17 @@ __string:
         :
         pea __string
         jsr puts
+        plx
+.endmacro
+
+.macro l_puts str
+        .local __string
+        jmp :+
+__string:
+        .asciiz str
+        :
+        pea __string
+        jsr l_puts
         plx
 .endmacro
 

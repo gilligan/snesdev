@@ -1,0 +1,6 @@
+*.o
+*.swp
+*.lst
+*.map
+*.dylib
+*.exe

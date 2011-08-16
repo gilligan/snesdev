@@ -4,12 +4,24 @@
         .i16
         .smart
 
+        .struct debug_data
+                status .byte
+                pc_lo  .byte
+                pc_hi  .byte
+                db     .byte
+                reg_a  .word
+                reg_x  .word
+                reg_y  .word
+                reg_sp .word
+        .endstruct
+
 .global __debug_handler
 .global brk_info
 
 .SEGMENT "BSS"
-mem_pool: .res 64
+        mem_pool: .res 64
 .SEGMENT "CODE"
+
 
 .proc __debug_handler
 
