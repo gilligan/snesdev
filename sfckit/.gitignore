@@ -4,3 +4,6 @@
 *.map
 *.dylib
 *.exe
+*.cfg
+*.sfc
+
