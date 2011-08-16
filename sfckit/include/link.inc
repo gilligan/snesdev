@@ -37,13 +37,10 @@
 
         lda 1,S
         sta register_data+debug_data::status
-        sta $3803
         lda 2,S
         sta register_data+debug_data::pc_lo
-        sta $3803
         lda 3,S
         sta register_data+debug_data::pc_hi
-        sta $3803
         lda 4,s
         sta register_data+debug_data::db
 
@@ -61,6 +58,12 @@
         bne :-
         lda #$02
         sta $3802
+.endmacro
+
+.macro link_restore_registers
+        lda register_data+debug_data::reg_a
+        ldx register_data+debug_data::reg_x
+        ldy register_data+debug_data::reg_y
 .endmacro
 
 
