@@ -1,7 +1,7 @@
+
 .include "header.inc"
 .include "regs.inc"
 .include "std.inc"
-.include "link.inc"
 
 .global main
 .global mem_pool
@@ -53,14 +53,10 @@ main:
 
         ldx #$0000
         stx VMADDL
-        call g_dma_tag_2, font1_dma
-        ldx #$3000
-        stx VMADDL
-        call g_dma_tag_2,font2_dma
-        lda #$00
-        sta $2121
-        call g_dma_tag_2,cgdata_dma
+        stz VMAIN
 
+        upload_to_vram font1,$0000,font_end1-font1
+        upload_to_cgram colors,$00, colors_end-colors
 
         ;
         ; print some text
@@ -70,14 +66,6 @@ main:
         ldx #$1000
         stx VMADDL
         puts "hello:bg1"
-
-        ldx #$1800+(32*2)
-        stx VMADDL
-        puts "hello:bg2"
-
-        ldx #$2000+(2*32*2)
-        stx VMADDL
-        call printf,str_hello
 
         ;
         ; config & enable display
@@ -90,9 +78,6 @@ main:
         lda #$0f
         sta INIDISP
 
-        lda #$01
-        ldx #$02
-        ldy #$03
 
         ;
         ; enable NMI/joypad reading
@@ -109,10 +94,6 @@ quit:
 
 
 brk_handler:
-        link_dump_registers
-        link_tx_registers
-        link_restore_registers
-
 irq_handler:
 
         jmp __debug_handler
@@ -145,13 +126,6 @@ nmi:
 
         rti
 
-
-;
-; screen setup and dma transfers
-;
-font1_dma: build_dma_tag 1,$18,font1,^font1,font_end1-font1
-font2_dma: build_dma_tag 1,$18,font2,^font2,font_end2-font2
-cgdata_dma: build_dma_tag 0,$22,colors,^colors,colors_end-colors
 
 ;
 ; graphics data 
