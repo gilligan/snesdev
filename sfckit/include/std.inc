@@ -37,10 +37,10 @@ wait_line:
 ; 
 ; input: [pal_data] palette data source address
 ;        [cgram_addr] destination address in cgram
-;        [color_count] number of colors to copy (bytes=colors*2)
+;        [bytes] number of bytes to copy (bytes=colors*2)
 ; output: --
 ; 
-.macro load_pal pal_data, cgram_addr, color_count
+.macro upload_to_cgram pal_data, cgram_addr, count
 .local @color_loop
 	
 	ldy #$0000
@@ -54,9 +54,25 @@ wait_line:
 	lda pal_data,y
 	sta $2122
 	iny
-	cpy #color_count*2
+	cpy #count
 	bne @color_loop
 .endmacro
+
+.macro upload_to_vram src, dest, len
+        ; set vram point
+        ldx #dest
+        stx VMADDL
+        ldx #$0000
+        :
+        lda src,x
+        sta VMDATAL
+        inx
+        lda src,x
+        inx
+        sta VMDATAH
+        cpx #len
+        bne :-
+.endmacro 
 
 .macro g_dma_transfer src_addr, dest_addr, count
 

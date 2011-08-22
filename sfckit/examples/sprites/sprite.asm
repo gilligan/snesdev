@@ -51,7 +51,8 @@ main:
         SET_VRAM_ADDR($6000)
         call g_dma_tag_0,chr_dma
 
-        load_pal sprite_pal, $80, 16
+        ;load_pal sprite_pal, $80, 16
+        upload_to_cgram sprite_pal, $80, sprite_pal_end-sprite_pal
 
         lda #100
         sta oam_data+OAM_XPOS
