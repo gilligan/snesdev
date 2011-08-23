@@ -56,7 +56,7 @@
         stx BG12NBA
         ldx BG_MAP_ADDR($1000)
         stx BG1SC
-        load_pal debug_colors,$00,4
+        upload_to_cgram debug_colors,$00,8
 
         ldx #$0000
         stx VMADDL
