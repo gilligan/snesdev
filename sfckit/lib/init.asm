@@ -4,17 +4,22 @@
 .IMPORT __HDATA_RUN__
 .IMPORT __HDATA_SIZE__
 
-.global start
-.import main
+.global init_snes
 
 .a8
-.i16
+.i8
 .smart
 .segment "CODE"
 
 ;----------------------------------------------------------------------
-start:
+.proc init_snes
 ;----------------------------------------------------------------------
+        pha
+        phx
+        phy
+        php
+        phd
+
 	sei				; disable interrupts
 	clc				; switch to native mode
 	xce				;
@@ -199,8 +204,16 @@ _empty_data_segment:			;
 
         rep #$38                        ;
         sep #$20                        ; 8bit accu / 16bit index
-	
-	jmp	main
 
+        pld
+        plp
+        ply
+        plx
+        pla
+
+        rts
+	
 wram_fill_byte:
 .byte	$00
+
+.endproc

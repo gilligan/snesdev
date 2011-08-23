@@ -24,7 +24,10 @@
 
 .SEGMENT "CODE"
 
-main:
+start:
+
+        init_snes
+
         .a8
         .i16
         .smart

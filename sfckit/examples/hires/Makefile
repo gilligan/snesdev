@@ -1,6 +1,6 @@
 TARGET=hires.sfc
 SRC=hires.asm
-LIB=init dma io 
+LIB=dma io 
 
 
 include ../../Makefile.snes
