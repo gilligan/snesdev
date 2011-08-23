@@ -1,8 +1,6 @@
 TARGET=sprite.sfc
-EXTRA=-DSWC
 SRC=sprite.asm
-LIB=init joy dma io swc
-OUTPUT=smc
+LIB=joy dma io swc
 
 
 include ../../Makefile.snes
