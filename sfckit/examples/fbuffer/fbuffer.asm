@@ -15,7 +15,8 @@
 
 .SEGMENT "BSS"
 
-        mem_pool:   .res 64  
+        mem_pool:      .res 64  
+        debug_enabled: .res 1
 
 .SEGMENT "HRAM" : FAR
 .SEGMENT "HRAM2" : FAR
@@ -24,13 +25,30 @@
 
 .SEGMENT "CODE"
 
+.macro BREAKPOINT
+        lda #$01
+        sta debug_enabled
+        brk
+        nop
+        nop
+        nop
+        stz debug_enabled
+.endmacro
+
 start:
 
         init_snes
+        BREAKPOINT
 
         .a8
         .i16
         .smart
+
+
+        call assert_mem_equal, buffer1, buffer2, 4
+        lda assert_result
+        :
+        bne :-
 
 
         ; 
@@ -97,6 +115,7 @@ quit:
 
 
 brk_handler:
+        rti
 irq_handler:
 
         jmp __debug_handler
@@ -144,6 +163,10 @@ colors:
         .byte $ff,$7f
 colors_end:
 
+buffer1:
+        .byte 1,2,3,4
+buffer2:
+        .byte 1,2,3,4
 
 
 font1: .incbin "font4bpp.bin"

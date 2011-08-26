@@ -1,6 +1,6 @@
 TARGET=color.sfc
 SRC=color.S
-LIB=init joy dma io 
+LIB=joy dma io 
 
 
 include ../../Makefile.snes
