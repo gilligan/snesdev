@@ -26,8 +26,8 @@
 .SEGMENT "CODE"
 
 start:
-
-        init_snes
+        jmp init_snes
+main:
 
         .a8
         .i16
@@ -52,23 +52,28 @@ start:
 
         ldx #$1000
         stx VMADDL
-        call g_dma_tag_2,bg_even_tiles_dma
+        ldx #.LOWORD(bg_even_tiles_dma)
+        jsr g_dma_transfer
 
         ldx #$4000
         stx VMADDL
-        call g_dma_tag_2,bg_odd_tiles_dma
+        ldx #.LOWORD(bg_odd_tiles_dma)
+        jsr g_dma_transfer
 
         ldx #$0000
         stx VMADDL
-        call g_dma_tag_2,bg_even_map_dma
+        ldx #.LOWORD(bg_even_map_dma)
+        jsr g_dma_transfer
 
         ldx #$800
         stx VMADDL
-        call g_dma_tag_2,bg_odd_map_dma
+        ldx #.LOWORD(bg_odd_map_dma)
+        jsr g_dma_transfer
 
         lda #$00
         sta $2121
-        call g_dma_tag_2,bg_even_pal_dma
+        ldx #.LOWORD(bg_even_pal_dma)
+        jsr g_dma_transfer
 
 
         ;
