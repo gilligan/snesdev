@@ -6,10 +6,6 @@
 
 .SEGMENT "ZEROPAGE"
 
-        ; careful with zeropage!
-        ; it is used to access arguments
-        ; on stack in subroutines !
-
 .SEGMENT "BSS"
 
         mem_pool:    .res 64  
@@ -33,8 +29,8 @@
 .SEGMENT "CODE"
 
 start:
-
-        init_snes
+        jmp init_snes
+main:
 
         .a8
         .i16
@@ -52,9 +48,9 @@ start:
         ;
 
         SET_VRAM_ADDR($6000)
-        call g_dma_tag_0,chr_dma
+        ldx #.LOWORD(chr_dma)
+        jsr g_dma_transfer
 
-        ;load_pal sprite_pal, $80, 16
         upload_to_cgram sprite_pal, $80, sprite_pal_end-sprite_pal
 
         lda #100
@@ -62,7 +58,8 @@ start:
         sta oam_data+OAM_YPOS
 
         SET_OAM_ADDR($0000)
-        call g_dma_tag_0,oam_dma
+        ldx #.loword(oam_dma)
+        jsr g_dma_transfer
 
 
         ;
