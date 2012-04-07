@@ -27,8 +27,8 @@
 .SEGMENT "CODE"
 
 start:
-
-        init_snes
+        jsr init_snes
+main:        
 
         .a8
         .i16
@@ -42,6 +42,7 @@ start:
         ;ldx BG_MAP_ADDR($0000)
         ldx #($0000>>BG_MAP_SHIFT)
         stx BG1SC
+
         ;ldx #BG1_CHR_ADDR($1000)
         ldx #($1000>>BG1_CHR_SHIFT)
         stx BG12NBA
@@ -52,15 +53,18 @@ start:
 
         ldx #$1000
         stx VMADDL
-        call g_dma_tag_2,bg_char_dma
+        ldx #.LOWORD(bg_char_dma)
+        jsr g_dma_transfer
 
         ldx #$0000
         stx VMADDL
-        call g_dma_tag_2,bg_map_dma
+        ldx #.LOWORD(bg_map_dma)
+        jsr g_dma_transfer
 
         lda #$00
         sta $2121
-        call g_dma_tag_2,bg_pal_dma
+        ldx #.LOWORD(bg_pal_dma)
+        jsr g_dma_transfer
 
         ;
         ; config & enable display
