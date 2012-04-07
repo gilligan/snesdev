@@ -7,33 +7,28 @@
 .global init_snes
 
 .a8
-.i8
+.i16
 .smart
 .segment "CODE"
 
 ;----------------------------------------------------------------------
 .proc init_snes
 ;----------------------------------------------------------------------
-        pha
-        phx
-        phy
-        php
-        phd
 
-	sei				; disable interrupts
+    .smart
+    sei				; disable interrupts
 	clc				; switch to native mode
 	xce				;
-	rep	#38h			; mem/A/X/Y = 16bit
-					; decimal mode off
-
-	ldx	#1FFFh			; setup stack pointer
+	rep	#38h		; mem/A/X/Y = 16bit / decimal mode off
+   	ldx	#1FFFh		; setup stack pointer
 	txs				;
-	lda	#0000h			; direct page = 0000h
+	lda	#0000h		; direct page = 0000h
 	tcd				;
-	sep	#20h			; 8bit A/mem
-	lda	#80h			; data bank = 80h
+	sep	#20h		; 8bit A/mem
+	lda	#80h		; data bank = 80h
 	pha				;
 	plb				;
+   
 	lda	$FFD5			; get map mode
 	lsr				; 21/31 jump to bank C0
 	bcs	:+			; 20/30 jump to bank 80
@@ -43,7 +38,7 @@
 ;----------------------------------------------------------------------
 histart:
 ;----------------------------------------------------------------------
-	
+
 	lda	$FFD5			; if map_mode & 10h
 	bit	#10h			; switch to hi-speed mode
 	beq	:+			;
@@ -205,13 +200,12 @@ _empty_data_segment:			;
         rep #$38                        ;
         sep #$20                        ; 8bit accu / 16bit index
 
-        pld
-        plp
-        ply
-        plx
-        pla
-
-        rts
+;
+; all hardware setup is done at this point
+;
+                 ;
+        jmp main ; jump to main code entry point
+                 ;
 	
 wram_fill_byte:
 .byte	$00
