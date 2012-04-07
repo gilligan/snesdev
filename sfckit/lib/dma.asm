@@ -17,7 +17,47 @@
 .global g_dma_tag_5
 .global g_dma_tag_6
 .global g_dma_tag_7
+.global g_dma_transfer
 
+.proc g_dma_transfer
+
+    stx $00
+    tyx
+    ldy #$00
+
+    lda ($00),y  ; dma mode
+    iny
+    sta $4300
+
+    lda ($00),y ; dest register
+    iny
+    sta $4301
+
+    lda ($00),y ; set src (low)
+    iny
+    sta $4302 
+
+    lda ($00),y ; set src (high)
+    iny
+    sta $4303
+
+    lda ($00),y ; set src (bank)
+    iny
+    sta $4304 
+
+    lda ($00),y ; set transfer length (low)
+    iny
+    sta $4305
+
+    lda ($00),y ; set transfer length (high)
+    iny
+    sta $4306
+
+    lda #$1
+    sta $420b
+    rts
+
+.endproc
 
 .define tag ARG_1
 
