@@ -8,10 +8,6 @@
 
 .SEGMENT "ZEROPAGE"
 
-        ; careful with zeropage!
-        ; it is used to access arguments
-        ; on stack in subroutines !
-
 .SEGMENT "BSS"
 
         mem_pool:   .res 64  
@@ -24,13 +20,12 @@
 .SEGMENT "CODE"
 
 start:
-
-        init_snes
+    jmp init_snes
+main:
 
         .a8
         .i16
         .smart
-
 
         ; 
         ; set BG properties
@@ -55,13 +50,19 @@ start:
 
         ldx #$0000
         stx VMADDL
-        call g_dma_tag_2, font1_dma
+        ldx #.LOWORD(font1_dma)
+        jsr g_dma_transfer
+
+
         ldx #$3000
         stx VMADDL
-        call g_dma_tag_2,font2_dma
+        ldx #.LOWORD(font2_dma)
+        jsr g_dma_transfer
+
         lda #$00
-        sta $2121
-        call g_dma_tag_2,cgdata_dma
+        sta CGADD
+        ldx #.LOWORD(cgdata_dma)
+        jsr g_dma_transfer
 
 
         ;
