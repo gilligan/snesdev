@@ -5,13 +5,9 @@
 .global main
 .global mem_pool
 .global DEBUG_FONT_DMA,brk_info,debug_colors
-
+.global main
 
 .SEGMENT "ZEROPAGE"
-
-        ; careful with zeropage!
-        ; it is used to access arguments
-        ; on stack in subroutines !
 
 .SEGMENT "BSS"
 
@@ -26,8 +22,9 @@
 .SEGMENT "CODE"
 
 start:
+    jmp init_snes
+main:
 
-        init_snes
 
         .a8
         .i16
@@ -51,25 +48,29 @@ start:
 
         ldx #$1000
         stx VMADDL
-        call g_dma_tag_2,text_char_dma
+        ldx #.LOWORD(text_char_dma)
+        jsr g_dma_transfer
 
         ldx #$4000
         stx VMADDL
-        call g_dma_tag_2,box_char_dma
+        ldx #.LOWORD(box_char_dma)
+        jsr g_dma_transfer
 
         ldx #$0000
         stx VMADDL
-        call g_dma_tag_2,text_map_dma
+        ldx #.LOWORD(text_map_dma)
+        jsr g_dma_transfer
 
         ldx #$800
         stx VMADDL
-        call g_dma_tag_2,box_map_dma
+        ldx #.LOWORD(box_map_dma)
+        jsr g_dma_transfer
 
         lda #$00
         sta $2121
-        call g_dma_tag_2,box_pal_dma
-
-
+        ldx #.LOWORD(box_pal_dma)
+        jsr g_dma_transfer
+        
         ;
         ; config & enable display
         ;
